@@ -42,6 +42,7 @@ interface PayrollEmployee {
     remuneracionNeta: number;
     estado: string;
     observaciones: string;
+    asistenciaSugerida?: number;
 }
 
 @Component({
