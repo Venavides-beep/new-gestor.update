@@ -24,7 +24,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let employee of filteredEmployees">
+                <tr *ngFor="let employee of filteredEmployees; trackBy: trackByEmployee">
                     <td>
                         <div class="user-info">
                             <div class="avatar">{{(employee.nombre || '?').charAt(0)}}{{(employee.apellidos ||
@@ -202,7 +202,8 @@
                         <div class="form-group">
                             <label>Régimen Pensionario</label>
                             <select [(ngModel)]="newEmployee.regimenPensionario" name="regimenPensionario"
-                                class="form-control" [disabled]="newEmployee.tipoTrabajador === 'RXH' || isViewOnly">
+                                class="form-control"
+                                [disabled]="newEmployee.tipoTrabajador === 'HONORARIOS' || isViewOnly">
                                 <option value="SNP/ONP">SNP (ONP)</option>
                                 <option value="INTEGRA">AFP Integra</option>
                                 <option value="PRIMA">AFP Prima</option>
@@ -218,7 +219,7 @@
                             <div class="form-group-checkbox small-text">
                                 <input type="checkbox" [(ngModel)]="newEmployee.calculoAfpMinimo"
                                     name="calculoAfpMinimo" id="calcAfp"
-                                    [disabled]="newEmployee.tipoTrabajador === 'RXH' || isViewOnly">
+                                    [disabled]="newEmployee.tipoTrabajador === 'HONORARIOS' || isViewOnly">
                                 <label for="calcAfp">Cálculo AFP sobre Mínimo (1130)</label>
                             </div>
                         </div>
@@ -266,7 +267,8 @@
                         </div>
                     </div>
                     <div class="form-group-checkbox mt-2" *ngIf="!isViewOnly">
-                        <input type="checkbox" [(ngModel)]="newEmployee.syncToBiometric" name="syncToBiometric" id="syncBio">
+                        <input type="checkbox" [(ngModel)]="newEmployee.syncToBiometric" name="syncToBiometric"
+                            id="syncBio">
                         <label for="syncBio" style="color: #2563eb; font-weight: bold; cursor: pointer;">
                             <i class="fa-solid fa-fingerprint"></i> ¿Registrar/Actualizar en Equipo Biométrico ahora?
                         </label>

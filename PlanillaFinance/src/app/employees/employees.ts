@@ -52,6 +52,8 @@ interface EmployeeFormData {
     biometricId?: number;
     entryTime?: string;
     exitTime?: string;
+
+    syncToBiometric?: boolean;
 }
 
 @Component({
@@ -76,12 +78,13 @@ export class GestionEmpleadosComponent {
     filteredEmployees: Employee[] = [];
 
     newEmployee: EmployeeFormData = {
+
         nombre: '', apellidos: '', dni: '', sexo: '', nacionalidad: '', telefono: '', contactoEmergencia: '', numeroEmergencia: '', fechaNacimiento: '', direccion: '',
         email: '', cargo: '', departamento: '', tipoTrabajador: 'PLANILLA', regimenPensionario: 'SNP/ONP', sueldo: 0, asignacionFamiliar: false,
         calculoAfpMinimo: false,
         fechaInicio: new Date().toISOString().split('T')[0], fechaFinContrato: '', tipoContrato: '', horarioTrabajo: '',
         banco: '', tipoCuenta: '', numeroCuenta: '', cci: '', nivelEducativo: '', estado: 'Activo',
-        biometricId: undefined, entryTime: '', exitTime: ''
+        biometricId: undefined, entryTime: '', exitTime: '', syncToBiometric: false,
     };
 
     cargos: string[] = ['Técnico', 'Administrador', 'Vendedor', 'Gerente', 'Recepcionista', 'Programador', 'Administrativo', 'Ventas', 'Gerencia', 'Soporte Técnico', 'Diseño', 'Marketing'];
@@ -132,7 +135,9 @@ export class GestionEmpleadosComponent {
             return '';
         }
     }
-
+    trackByEmployee(index: number, employee: Employee): string {
+        return employee._id || index.toString();
+    }
     async loadEmployees() {
         try {
             const response = await fetch(API_URL + '/api/empleados', {
