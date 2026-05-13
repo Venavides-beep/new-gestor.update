@@ -57,9 +57,12 @@ export class LoginComponent {
     }
 
     async onSubmit() {
+        console.log('--- INTENTO DE LOGIN INICIADO ---');
         if (this.loginForm.valid) {
             this.errorMessage = null;
             const { email, password } = this.loginForm.value;
+            console.log('Credenciales válidas en formulario. Enviando a:', `${API_URL}/api/login`);
+            
             try {
                 const response = await fetch(`${API_URL}/api/login`, {
                     method: 'POST',
@@ -69,10 +72,12 @@ export class LoginComponent {
                     body: JSON.stringify({ email, password })
                 });
 
+                console.log('Respuesta recibida del servidor. Status:', response.status);
                 const data = await response.json();
+                console.log('Datos del JSON recibidos:', data);
 
                 if (response.ok && data.success) {
-                    console.log('Login successful');
+                    console.log('LOGIN EXITOSO. Guardando datos...');
                     const { email, password, rememberMe } = this.loginForm.value;
                     if (rememberMe) {
                         localStorage.setItem('rememberedEmail', email);
@@ -83,16 +88,19 @@ export class LoginComponent {
                     }
 
                     this.authService.login(data.user);
+                    console.log('Navegando al dashboard...');
                     const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
                     this.router.navigateByUrl(returnUrl);
                 } else {
+                    console.warn('Login rechazado por el servidor:', data.message);
                     this.errorMessage = data.message || 'Credenciales inválidas.';
                 }
             } catch (error) {
-                console.error('Error in login:', error);
+                console.error('ERROR CRÍTICO EN LA PETICIÓN FETCH:', error);
                 this.errorMessage = 'No se pudo conectar con el servidor.';
             }
         } else {
+            console.warn('Formulario inválido. Campos requeridos vacíos.');
             this.loginForm.markAllAsTouched();
         }
     }

@@ -1,4 +1,3 @@
-
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -18,7 +17,7 @@ interface Employee {
     sueldo?: number;
     [key: string]: any;
 }
-//asdasdasdasdasdsadadasdasdas
+
 interface EmployeeFormData {
     _id?: string;
     nombre: string;
@@ -52,7 +51,6 @@ interface EmployeeFormData {
     biometricId?: number;
     entryTime?: string;
     exitTime?: string;
-
     syncToBiometric?: boolean;
 }
 
@@ -69,6 +67,8 @@ export class GestionEmpleadosComponent {
     submitted: boolean = false;
     searchingDni: boolean = false;
     isViewOnly: boolean = false;
+    biometricStatus: string = '';
+    isBiometricRegistered: boolean = false;
 
     showLeaveModal: boolean = false;
     leaveReason: string = '';
@@ -78,7 +78,6 @@ export class GestionEmpleadosComponent {
     filteredEmployees: Employee[] = [];
 
     newEmployee: EmployeeFormData = {
-
         nombre: '', apellidos: '', dni: '', sexo: '', nacionalidad: '', telefono: '', contactoEmergencia: '', numeroEmergencia: '', fechaNacimiento: '', direccion: '',
         email: '', cargo: '', departamento: '', tipoTrabajador: 'PLANILLA', regimenPensionario: 'SNP/ONP', sueldo: 0, asignacionFamiliar: false,
         calculoAfpMinimo: false,
@@ -113,6 +112,50 @@ export class GestionEmpleadosComponent {
         this.loadEmployees();
     }
 
+    async checkBiometricRegistration() {
+        console.log('--- VERIFICANDO REGISTRO BIOMÉTRICO ---');
+        console.log('ID a consultar:', this.newEmployee.biometricId);
+        
+        if (!this.newEmployee.biometricId) {
+            console.log('Sin ID, limpiando estado.');
+            this.biometricStatus = '';
+            this.isBiometricRegistered = false;
+            return;
+        }
+
+        try {
+            const url = `${API_URL}/api/zkteco/check-user/${this.newEmployee.biometricId}`;
+            console.log('Llamando a:', url);
+            
+            const response = await fetch(url, {
+                headers: getAuthHeaders()
+            });
+
+            console.log('Respuesta verificación recibida. Status:', response.status);
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Datos recibidos de verificación:', data);
+                
+                if (data.exists) {
+                    console.log('USUARIO ENCONTRADO EN EQUIPO. Bloqueando UI.');
+                    this.biometricStatus = '✅ Usuario ya registrado en equipo';
+                    this.isBiometricRegistered = true;
+                    this.newEmployee.syncToBiometric = false;
+                } else {
+                    console.log('Usuario NO encontrado en equipo. Habilitando UI.');
+                    this.biometricStatus = '⚠️ No registrado en equipo';
+                    this.isBiometricRegistered = false;
+                    this.newEmployee.syncToBiometric = true;
+                }
+            } else {
+                console.error('Error en la respuesta del servidor de verificación');
+            }
+        } catch (error) {
+            console.error('Error crítico verificando biométrico:', error);
+        }
+    }
+
     onCargoChange() {
         const selectedCargo = this.newEmployee.cargo;
         if (selectedCargo && this.departamentosPorCargo[selectedCargo]) {
@@ -135,9 +178,11 @@ export class GestionEmpleadosComponent {
             return '';
         }
     }
+
     trackByEmployee(index: number, employee: Employee): string {
         return employee._id || index.toString();
     }
+
     async loadEmployees() {
         try {
             const response = await fetch(API_URL + '/api/empleados', {
@@ -157,7 +202,7 @@ export class GestionEmpleadosComponent {
                     fechaInicio: emp.fechaInicio || emp.startDate,
                     sueldo: emp.sueldo || emp.salary,
                 }));
-                this.filterEmployees();
+                this.filteredEmployees = [...this.employees];
             }
         } catch (error) {
             console.error('Error loading employees:', error);
@@ -266,6 +311,7 @@ export class GestionEmpleadosComponent {
         this.submitted = false;
         this.newEmployee = { ...employee, fechaNacimiento: this.formatDate(employee.fechaNacimiento), fechaInicio: this.formatDate(employee.fechaInicio), fechaFinContrato: this.formatDate(employee.fechaFinContrato) };
         this.showAddModal = true;
+        this.checkBiometricRegistration();
         if (this.newEmployee.cargo && this.departamentosPorCargo[this.newEmployee.cargo]) {
             this.availableDepartamentos = this.departamentosPorCargo[this.newEmployee.cargo];
         } else {
@@ -278,6 +324,7 @@ export class GestionEmpleadosComponent {
         this.submitted = false;
         this.newEmployee = { ...employee, fechaNacimiento: this.formatDate(employee.fechaNacimiento), fechaInicio: this.formatDate(employee.fechaInicio), fechaFinContrato: this.formatDate(employee.fechaFinContrato) };
         this.showAddModal = true;
+        this.checkBiometricRegistration();
         if (this.newEmployee.cargo && this.departamentosPorCargo[this.newEmployee.cargo]) {
             this.availableDepartamentos = this.departamentosPorCargo[this.newEmployee.cargo];
         } else {
