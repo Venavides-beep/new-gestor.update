@@ -2996,8 +2996,8 @@ const globalCommands = [];
 function pushUserToDevice(biometricId, nombre, apellidos) {
     if (!biometricId) return 0;
     const fullName = `${nombre || ''} ${apellidos || ''}`.trim().substring(0, 24); // ZKTeco max 24 chars
-    // Formato ADMS: campos separados por TAB
-    const cmd = `DATA UPDATE USERINFO PIN=${biometricId}\tName=${fullName}\tPrivilege=0\tPassword=\tEnabled=1\tCardNo=0\tGroup=1\tTimeZone=0\tVerify=0`;
+    // Formato ADMS estándar universal (Pri en vez de Privilege, Passwd en vez de Password)
+    const cmd = `DATA UPDATE USERINFO PIN=${biometricId}\tName=${fullName}\tPri=0\tPasswd=\tGrp=1\tTZ=0000000100000000`;
     let pushed = 0;
     if (knownDeviceSNs.size === 0) {
         console.log(`[ZKTeco] ⚠️ No hay dispositivos conectados. El usuario PIN=${biometricId} se encolará globalmente.`);
