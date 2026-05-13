@@ -17,6 +17,7 @@ app.set('trust proxy', true);
 
 const pendingCommands = new Map();
 const biometricUsersCache = new Map();
+const biometricUsersFullDataCache = new Map();
 const knownDeviceSNs = new Set();
 
 
@@ -2828,6 +2829,10 @@ app.post('/iclock/cdata', async (req, res) => {
 
                 if (pin) {
                     biometricUsersCache.set(pin.toString(), name);
+                    // Guardar todos los datos extras (como Password, Privilege, etc.) para consultarlos luego
+                    if (typeof biometricUsersFullDataCache !== 'undefined') {
+                        biometricUsersFullDataCache.set(pin.toString(), data);
+                    }
                     userCount++;
 
                     // Persistir en DB y vincular
@@ -2996,8 +3001,8 @@ const globalCommands = [];
 function pushUserToDevice(biometricId, nombre, apellidos) {
     if (!biometricId) return 0;
     const fullName = `${nombre || ''} ${apellidos || ''}`.trim().substring(0, 24); // ZKTeco max 24 chars
-    // Formato ADMS estándar universal (Pri en vez de Privilege, Passwd en vez de Password)
-    const cmd = `DATA UPDATE USERINFO PIN=${biometricId}\tName=${fullName}\tPri=0\tPasswd=\tGrp=1\tTZ=0000000100000000`;
+    // Comando ultra simplificado para máquinas ZMM510. Solo PIN y Nombre.
+    const cmd = `DATA UPDATE USERINFO PIN=${biometricId}\tName=${fullName}\tPri=0`;
     let pushed = 0;
     if (knownDeviceSNs.size === 0) {
         console.log(`[ZKTeco] ⚠️ No hay dispositivos conectados. El usuario PIN=${biometricId} se encolará globalmente.`);
@@ -3082,10 +3087,19 @@ app.post('/api/zkteco/sync-all-employees', async (req, res) => {
 });
 
 app.get('/api/attendance/debug-biometric-users', (req, res) => {
-    const users = Array.from(biometricUsersCache.entries()).map(([pin, name]) => ({
-        pin,
-        name
-    }));
+    const users = Array.from(biometricUsersCache.entries()).map(([pin, name]) => {
+        let fullData = null;
+        if (typeof biometricUsersFullDataCache !== 'undefined') {
+            fullData = biometricUsersFullDataCache.get(pin);
+        }
+        return {
+            pin,
+            name,
+            password: fullData?.PASSWD || null,
+            privilege: fullData?.PRI || null,
+            fullData
+        };
+    });
     console.log(`[DEBUG-API] Consultando cache de usuarios. Total en memoria: ${users.length}`);
     res.json({
         total: users.length,
