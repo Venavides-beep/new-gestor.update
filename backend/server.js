@@ -3028,8 +3028,17 @@ function pushUserToDevice(biometricId, nombre, apellidos, password = '') {
     }
     for (const sn of knownDeviceSNs) {
         if (!pendingCommands.has(sn)) pendingCommands.set(sn, []);
-        pendingCommands.get(sn).push(cmd);
-        console.log(`[ZKTeco] ✅ Encolado usuario PIN=${biometricId} (${fullName}) para dispositivo SN=${sn}`);
+        
+        // Formato 1: USERINFO con Password (Estándar)
+        const cmd1 = `DATA UPDATE USERINFO PIN=${biometricId}\tName=${fullName}\tPrivilege=0\tPassword=${password}\tEnabled=1\tGroup=1`;
+        
+        // Formato 2: USER con Passwd (Moderno/Visto en Postman)
+        const cmd2 = `DATA UPDATE USER PIN=${biometricId}\tName=${fullName}\tPrivilege=0\tPasswd=${password}\tEnabled=1\tGroup=1`;
+        
+        pendingCommands.get(sn).push(cmd1);
+        pendingCommands.get(sn).push(cmd2);
+        
+        console.log(`[ZKTeco] ✅ Encoladas órdenes (USER/USERINFO) para PIN=${biometricId} en SN=${sn}`);
         pushed++;
     }
     return pushed;
