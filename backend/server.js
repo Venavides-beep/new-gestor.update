@@ -2975,14 +2975,15 @@ app.get('/api/attendance/force-biometric-sync', (req, res) => {
 // ─── ZKTeco: Ver dispositivos conectados ───────────────────────────────────
 // ─── ZKTeco: Verificar si un usuario existe en la caché ───────────────
 app.get('/api/zkteco/check-user/:pin', (req, res) => {
-    const pin = req.params.pin.toString();
+    const pin = req.params.pin;
     console.log(`[ZKTeco] Verificando existencia de PIN: ${pin}`);
 
-    const userData = biometricUsersCache.get(pin);
+    // Intentar buscar como texto y como número para evitar fallos de tipo
+    let userData = biometricUsersCache.get(pin.toString()) || biometricUsersCache.get(parseInt(pin));
     const exists = !!userData;
     
     // Buscar contraseña en diferentes posibles nombres de campo
-    const pinPassword = exists ? (userData.Password || userData.password || userData.Passwd || '') : '';
+    const pinPassword = exists ? (userData.Password || userData.password || userData.Passwd || userData.PASSWD || '') : '';
 
     // Si el usuario existe pero no tenemos contraseña, pedir a la máquina que nos mande los datos de nuevo
     if (exists && !pinPassword && knownDeviceSNs.size > 0) {
@@ -3017,7 +3018,8 @@ app.get('/api/zkteco/devices', (req, res) => {
 const globalCommands = [];
 function pushUserToDevice(biometricId, nombre, apellidos, password = '') {
     if (!biometricId) return 0;
-    const fullName = `${nombre || ''} ${apellidos || ''}`.trim().substring(0, 24); // ZKTeco max 24 chars
+    const pinStr = biometricId.toString(); // Asegurar que sea texto
+    const fullName = `${nombre || ''} ${apellidos || ''}`.trim().substring(0, 24);
     // Formato ADMS: campos separados por TAB
     const cmd = `DATA UPDATE USERINFO PIN=${biometricId}\tName=${fullName}\tPrivilege=0\tPassword=${password}\tEnabled=1\tCardNo=0\tGroup=1\tTimeZone=0\tVerify=0`;
     let pushed = 0;
@@ -3030,15 +3032,15 @@ function pushUserToDevice(biometricId, nombre, apellidos, password = '') {
         if (!pendingCommands.has(sn)) pendingCommands.set(sn, []);
         
         // Formato 1: USERINFO con Password (Estándar)
-        const cmd1 = `DATA UPDATE USERINFO PIN=${biometricId}\tName=${fullName}\tPrivilege=0\tPassword=${password}\tEnabled=1\tGroup=1`;
+        const cmd1 = `DATA UPDATE USERINFO PIN=${pinStr}\tName=${fullName}\tPrivilege=0\tPassword=${password}\tEnabled=1\tGroup=1`;
         
         // Formato 2: USER con Passwd (Moderno/Visto en Postman)
-        const cmd2 = `DATA UPDATE USER PIN=${biometricId}\tName=${fullName}\tPrivilege=0\tPasswd=${password}\tEnabled=1\tGroup=1`;
+        const cmd2 = `DATA UPDATE USER PIN=${pinStr}\tName=${fullName}\tPrivilege=0\tPasswd=${password}\tEnabled=1\tGroup=1`;
         
         pendingCommands.get(sn).push(cmd1);
         pendingCommands.get(sn).push(cmd2);
         
-        console.log(`[ZKTeco] ✅ Encoladas órdenes (USER/USERINFO) para PIN=${biometricId} en SN=${sn}`);
+        console.log(`[ZKTeco] ✅ Encoladas órdenes (USER/USERINFO) para PIN=${pinStr} en SN=${sn}`);
         pushed++;
     }
     return pushed;
