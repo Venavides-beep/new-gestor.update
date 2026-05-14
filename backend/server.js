@@ -2972,14 +2972,16 @@ app.get('/api/zkteco/check-user/:pin', (req, res) => {
     const pin = req.params.pin.toString();
     console.log(`[ZKTeco] Verificando existencia de PIN: ${pin}`);
 
-    // Buscar en la caché (biometricUsersCache)
     const userData = biometricUsersCache.get(pin);
     const exists = !!userData;
+    
+    // Buscar contraseña en diferentes posibles nombres de campo
+    const pinPassword = exists ? (userData.Password || userData.password || userData.Passwd || '') : '';
 
     res.json({
         pin,
         exists,
-        password: exists ? (userData.Password || '') : '',
+        password: pinPassword,
         timestamp: new Date().toISOString()
     });
 });
