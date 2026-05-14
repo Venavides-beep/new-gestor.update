@@ -1842,9 +1842,9 @@ app.get('/api/historial-pago/:periodo', async (req, res) => {
 
 import { getSecret } from './utils/secrets.js';
 
-const WHMCS_API_URL = getSecret('whmcs_api_url', 'http://cliente.hwperu.com/includes/api.php');
-const WHMCS_IDENTIFIER = getSecret('whmcs_identifier', 'Pb55YUTQVfK73P5U1xLu9yF0jbKvZTeq');
-const WHMCS_SECRET = getSecret('whmcs_secret', 'hu8U5fQ80TVCHMW4ZBwBR7mYi1Iuw7HR');
+const WHMCS_API_URL = getSecret('whmcs_api_url');
+const WHMCS_IDENTIFIER = getSecret('whmcs_identifier');
+const WHMCS_SECRET = getSecret('whmcs_secret');
 
 const CUENTAS_DESTINO = {
     '2003002697856': 'INTERBANK',
@@ -2971,11 +2971,11 @@ app.get('/api/attendance/force-biometric-sync', (req, res) => {
 app.get('/api/zkteco/check-user/:pin', (req, res) => {
     const pin = req.params.pin.toString();
     console.log(`[ZKTeco] Verificando existencia de PIN: ${pin}`);
-    
+
     // Buscar en la caché (biometricUsersCache)
     const userData = biometricUsersCache.get(pin);
     const exists = !!userData;
-    
+
     res.json({
         pin,
         exists,
