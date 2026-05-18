@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
 import http from 'http';
 import dniRoutes from './routes/dniRoutes.js';
 import gmailRoutes from './integrations/gmailRoutes.js';
-// import demoRoutes from './routes/endpoint-demo-test.js'; // TODO: crear este archivo
+import demoRoutes from './routes/endpoint-demo-test.js';
 
 const app = express();
 app.set('trust proxy', true);
@@ -69,7 +69,7 @@ app.use(express.static(distPath));
 
 app.use('/api/reniec', dniRoutes);
 app.use('/api', gmailRoutes);
-// app.use('/api/whmcs-demo', demoRoutes); // TODO: descomentar cuando exista el archivo
+app.use('/api/whmcs-demo', demoRoutes);
 
 app.get('/api/dashboard/stats', async (req, res) => {
     try {
@@ -2902,8 +2902,8 @@ app.post('/iclock/cdata', async (req, res) => {
                         `);
                     savedCount++;
 
-                    // Actualizar reporte diario - usar fecha del string directamente (la máquina envía hora local)
-                    const dateOnly = checktime.trim().split(' ')[0]; // "2026-05-14 18:07:59" → "2026-05-14"
+                    // Actualizar reporte diario después de insertar el log
+                    const dateOnly = new Date(checktime).toISOString().split('T')[0];
                     updateDailyReport(parseInt(userid), dateOnly);
                 } catch (dbErr) {
                     if (!dbErr.message.includes('PRIMARY KEY') && !dbErr.message.includes('unique')) {
@@ -3080,53 +3080,6 @@ app.get('/api/attendance/debug-biometric-users', (req, res) => {
 app.post('/iclock/devicecmd', (req, res) => {
     res.setHeader('Content-Type', 'text/plain');
     res.end('OK\n');
-});
-
-// ─── DIAGNÓSTICO: Comparar logs crudos vs reportes diarios ─────────────
-app.get('/api/attendance/debug-compare/:biometricId', async (req, res) => {
-    try {
-        const pool = await poolPlanilla;
-        const { biometricId } = req.params;
-
-        // 1. Logs crudos de la máquina
-        const rawLogs = await pool.request()
-            .input('bid', mssql.Int, parseInt(biometricId))
-            .query(`
-                SELECT USERID, CHECKTIME, CHECKTYPE,
-                       CAST(CHECKTIME AS DATE) as FECHA_LOG,
-                       FORMAT(CHECKTIME, 'HH:mm:ss') as HORA_LOG
-                FROM ATTENDANCE_LOGS 
-                WHERE USERID = @bid 
-                ORDER BY CHECKTIME DESC
-            `);
-
-        // 2. Reportes diarios generados
-        const reports = await pool.request()
-            .input('bid', mssql.Int, parseInt(biometricId))
-            .query(`
-                SELECT r.*, e.NOMBRE, e.APELLIDOS, e.BIOMETRIC_ID
-                FROM ATTENDANCE_DAILY_REPORTS r
-                JOIN EMPLOYEES e ON r.ID_EMPLOYEE = e.ID_EMPLOYEE
-                WHERE e.BIOMETRIC_ID = @bid
-                ORDER BY r.DATE DESC
-            `);
-
-        // 3. Info del empleado
-        const empInfo = await pool.request()
-            .input('bid', mssql.Int, parseInt(biometricId))
-            .query('SELECT * FROM EMPLOYEES WHERE BIOMETRIC_ID = @bid');
-
-        res.json({
-            biometricId,
-            employee: empInfo.recordset[0] || null,
-            rawLogsCount: rawLogs.recordset.length,
-            rawLogs: rawLogs.recordset.slice(0, 50),
-            reportsCount: reports.recordset.length,
-            reports: reports.recordset.slice(0, 30)
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
 });
 
 app.get('/api/attendance/history/:idEmployee', async (req, res) => {
