@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
 import http from 'http';
 import dniRoutes from './routes/dniRoutes.js';
 import gmailRoutes from './integrations/gmailRoutes.js';
-
+import demoRoutes from './routes/endpoint-demo-test.js';
 
 const app = express();
 app.set('trust proxy', true);
@@ -69,7 +69,7 @@ app.use(express.static(distPath));
 
 app.use('/api/reniec', dniRoutes);
 app.use('/api', gmailRoutes);
-
+app.use('/api/whmcs-demo', demoRoutes);
 
 app.get('/api/dashboard/stats', async (req, res) => {
     try {
@@ -1842,9 +1842,9 @@ app.get('/api/historial-pago/:periodo', async (req, res) => {
 
 import { getSecret } from './utils/secrets.js';
 
-const WHMCS_API_URL = getSecret('whmcs_api_url');
-const WHMCS_IDENTIFIER = getSecret('whmcs_identifier');
-const WHMCS_SECRET = getSecret('whmcs_secret');
+const WHMCS_API_URL = getSecret('whmcs_api_url', 'http://cliente.hwperu.com/includes/api.php');
+const WHMCS_IDENTIFIER = getSecret('whmcs_identifier', 'Pb55YUTQVfK73P5U1xLu9yF0jbKvZTeq');
+const WHMCS_SECRET = getSecret('whmcs_secret', 'hu8U5fQ80TVCHMW4ZBwBR7mYi1Iuw7HR');
 
 const CUENTAS_DESTINO = {
     '2003002697856': 'INTERBANK',
@@ -2817,11 +2817,9 @@ app.post('/iclock/cdata', async (req, res) => {
 
                 const data = {};
                 cleanLine.split('\t').forEach(p => {
-                    const parts = p.split('=');
-                    if (parts.length >= 2) {
-                        const key = parts[0].trim().toUpperCase();
-                        const val = parts.slice(1).join('=').trim();
-                        data[key] = val;
+                    const [keyVal, ...rest] = p.split('=');
+                    if (keyVal && rest.length > 0) {
+                        data[keyVal.trim().toUpperCase()] = rest.join('=').trim();
                     }
                 });
 
@@ -2829,11 +2827,7 @@ app.post('/iclock/cdata', async (req, res) => {
                 const name = data.NAME || `Usuario sin nombre (ID: ${pin})`;
 
                 if (pin) {
-                    // Guardar el objeto de datos completo en la caché, no solo el nombre
-                    const existingData = biometricUsersCache.get(pin.toString()) || {};
-                    const mergedData = { ...existingData, ...data, NAME: name };
-                    
-                    biometricUsersCache.set(pin.toString(), mergedData);
+                    biometricUsersCache.set(pin.toString(), name);
                     userCount++;
 
                     // Persistir en DB y vincular
@@ -2908,8 +2902,8 @@ app.post('/iclock/cdata', async (req, res) => {
                         `);
                     savedCount++;
 
-                    // Actualizar reporte diario después de insertar el log
-                    const dateOnly = new Date(checktime).toISOString().split('T')[0];
+                    // Actualizar reporte diario - usar fecha del string directamente (la máquina envía hora local)
+                    const dateOnly = checktime.trim().split(' ')[0]; // "2026-05-14 18:07:59" → "2026-05-14"
                     updateDailyReport(parseInt(userid), dateOnly);
                 } catch (dbErr) {
                     if (!dbErr.message.includes('PRIMARY KEY') && !dbErr.message.includes('unique')) {
@@ -2973,39 +2967,6 @@ app.get('/api/attendance/force-biometric-sync', (req, res) => {
 });
 
 // ─── ZKTeco: Ver dispositivos conectados ───────────────────────────────────
-// ─── ZKTeco: Verificar si un usuario existe en la caché ───────────────
-app.get('/api/zkteco/check-user/:pin', (req, res) => {
-    const pin = req.params.pin;
-    console.log(`[ZKTeco] Verificando existencia de PIN: ${pin}`);
-
-    // Intentar buscar como texto y como número para evitar fallos de tipo
-    let userData = biometricUsersCache.get(pin.toString()) || biometricUsersCache.get(parseInt(pin));
-    const exists = !!userData;
-    
-    // Buscar contraseña en diferentes posibles nombres de campo
-    const pinPassword = exists ? (userData.Password || userData.password || userData.Passwd || userData.PASSWD || '') : '';
-
-    // Si el usuario existe pero no tenemos contraseña, pedir a la máquina que nos mande los datos de nuevo
-    if (exists && !pinPassword && knownDeviceSNs.size > 0) {
-        console.log(`[ZKTeco] Usuario ${pin} existe pero sin clave. Encolando petición de datos a las máquinas...`);
-        const queryCmd = `DATA QUERY USERINFO PIN=${pin}`;
-        const queryCmdAlt = `DATA QUERY USER PIN=${pin}`;
-        
-        for (const sn of knownDeviceSNs) {
-            if (!pendingCommands.has(sn)) pendingCommands.set(sn, []);
-            pendingCommands.get(sn).push(queryCmd);
-            pendingCommands.get(sn).push(queryCmdAlt);
-        }
-    }
-
-    res.json({
-        pin,
-        exists,
-        password: pinPassword,
-        timestamp: new Date().toISOString()
-    });
-});
-
 app.get('/api/zkteco/devices', (req, res) => {
     const devices = Array.from(knownDeviceSNs).map(sn => ({
         sn,
@@ -3016,12 +2977,11 @@ app.get('/api/zkteco/devices', (req, res) => {
 
 // ─── ZKTeco: Función para encolar envío de usuario a la máquina ────────────
 const globalCommands = [];
-function pushUserToDevice(biometricId, nombre, apellidos, password = '') {
+function pushUserToDevice(biometricId, nombre, apellidos) {
     if (!biometricId) return 0;
-    const pinStr = biometricId.toString(); // Asegurar que sea texto
-    const fullName = `${nombre || ''} ${apellidos || ''}`.trim().substring(0, 24);
+    const fullName = `${nombre || ''} ${apellidos || ''}`.trim().substring(0, 24); // ZKTeco max 24 chars
     // Formato ADMS: campos separados por TAB
-    const cmd = `DATA UPDATE USERINFO PIN=${biometricId}\tName=${fullName}\tPrivilege=0\tPassword=${password}\tEnabled=1\tCardNo=0\tGroup=1\tTimeZone=0\tVerify=0`;
+    const cmd = `DATA UPDATE USERINFO PIN=${biometricId}\tName=${fullName}\tPrivilege=0\tPassword=\tEnabled=1\tCardNo=0\tGroup=1\tTimeZone=0\tVerify=0`;
     let pushed = 0;
     if (knownDeviceSNs.size === 0) {
         console.log(`[ZKTeco] ⚠️ No hay dispositivos conectados. El usuario PIN=${biometricId} se encolará globalmente.`);
@@ -3030,17 +2990,8 @@ function pushUserToDevice(biometricId, nombre, apellidos, password = '') {
     }
     for (const sn of knownDeviceSNs) {
         if (!pendingCommands.has(sn)) pendingCommands.set(sn, []);
-        
-        // Formato 1: USERINFO con Password (Estándar)
-        const cmd1 = `DATA UPDATE USERINFO PIN=${pinStr}\tName=${fullName}\tPrivilege=0\tPassword=${password}\tEnabled=1\tGroup=1`;
-        
-        // Formato 2: USER con Passwd (Moderno/Visto en Postman)
-        const cmd2 = `DATA UPDATE USER PIN=${pinStr}\tName=${fullName}\tPrivilege=0\tPasswd=${password}\tEnabled=1\tGroup=1`;
-        
-        pendingCommands.get(sn).push(cmd1);
-        pendingCommands.get(sn).push(cmd2);
-        
-        console.log(`[ZKTeco] ✅ Encoladas órdenes (USER/USERINFO) para PIN=${pinStr} en SN=${sn}`);
+        pendingCommands.get(sn).push(cmd);
+        console.log(`[ZKTeco] ✅ Encolado usuario PIN=${biometricId} (${fullName}) para dispositivo SN=${sn}`);
         pushed++;
     }
     return pushed;
@@ -3049,7 +3000,7 @@ function pushUserToDevice(biometricId, nombre, apellidos, password = '') {
 // ─── ZKTeco: Endpoint manual para enviar un empleado a la máquina ──────────
 app.post('/api/zkteco/push-user', async (req, res) => {
     try {
-        const { biometricId, nombre, apellidos, employeeId, biometricPassword } = req.body;
+        const { biometricId, nombre, apellidos, employeeId } = req.body;
 
         let finalBiometricId = biometricId;
         let finalNombre = nombre;
@@ -3074,7 +3025,7 @@ app.post('/api/zkteco/push-user', async (req, res) => {
             return res.status(400).json({ error: 'Se requiere biometricId o employeeId con BIOMETRIC_ID asignado' });
         }
 
-        const pushed = pushUserToDevice(finalBiometricId, finalNombre, finalApellidos, biometricPassword || '');
+        const pushed = pushUserToDevice(finalBiometricId, finalNombre, finalApellidos);
         const fullName = `${finalNombre || ''} ${finalApellidos || ''}`.trim();
 
         res.json({
@@ -3129,6 +3080,53 @@ app.get('/api/attendance/debug-biometric-users', (req, res) => {
 app.post('/iclock/devicecmd', (req, res) => {
     res.setHeader('Content-Type', 'text/plain');
     res.end('OK\n');
+});
+
+// ─── DIAGNÓSTICO: Comparar logs crudos vs reportes diarios ─────────────
+app.get('/api/attendance/debug-compare/:biometricId', async (req, res) => {
+    try {
+        const pool = await poolPlanilla;
+        const { biometricId } = req.params;
+
+        // 1. Logs crudos de la máquina
+        const rawLogs = await pool.request()
+            .input('bid', mssql.Int, parseInt(biometricId))
+            .query(`
+                SELECT USERID, CHECKTIME, CHECKTYPE,
+                       CAST(CHECKTIME AS DATE) as FECHA_LOG,
+                       FORMAT(CHECKTIME, 'HH:mm:ss') as HORA_LOG
+                FROM ATTENDANCE_LOGS 
+                WHERE USERID = @bid 
+                ORDER BY CHECKTIME DESC
+            `);
+
+        // 2. Reportes diarios generados
+        const reports = await pool.request()
+            .input('bid', mssql.Int, parseInt(biometricId))
+            .query(`
+                SELECT r.*, e.NOMBRE, e.APELLIDOS, e.BIOMETRIC_ID
+                FROM ATTENDANCE_DAILY_REPORTS r
+                JOIN EMPLOYEES e ON r.ID_EMPLOYEE = e.ID_EMPLOYEE
+                WHERE e.BIOMETRIC_ID = @bid
+                ORDER BY r.DATE DESC
+            `);
+
+        // 3. Info del empleado
+        const empInfo = await pool.request()
+            .input('bid', mssql.Int, parseInt(biometricId))
+            .query('SELECT * FROM EMPLOYEES WHERE BIOMETRIC_ID = @bid');
+
+        res.json({
+            biometricId,
+            employee: empInfo.recordset[0] || null,
+            rawLogsCount: rawLogs.recordset.length,
+            rawLogs: rawLogs.recordset.slice(0, 50),
+            reportsCount: reports.recordset.length,
+            reports: reports.recordset.slice(0, 30)
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 app.get('/api/attendance/history/:idEmployee', async (req, res) => {
