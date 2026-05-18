@@ -10,28 +10,21 @@ import { fileURLToPath } from 'url';
 import http from 'http';
 import dniRoutes from './routes/dniRoutes.js';
 import gmailRoutes from './integrations/gmailRoutes.js';
-import demoRoutes from './routes/endpoint-demo-test.js';
+// import demoRoutes from './routes/endpoint-demo-test.js';
 
 const app = express();
 app.set('trust proxy', true);
-
 const pendingCommands = new Map();
 const biometricUsersCache = new Map();
 const knownDeviceSNs = new Set();
-
-
-
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const corsOptions = {
     origin: (origin, callback) => {
         const allowedOrigins = process.env.CORS_ORIGIN
             ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
             : [];
         const isLocalhost = origin && (origin.includes('localhost') || origin.includes('127.0.0.1'));
-
         if (!origin || allowedOrigins.includes(origin) || isLocalhost) {
             callback(null, true);
         } else {
@@ -43,33 +36,22 @@ const corsOptions = {
     credentials: true
 };
 app.use(cors(corsOptions));
-
 const port = process.env.PORT || 3005;
-
 app.use('/iclock', express.text({ type: '*/*', limit: '10mb' }));
 app.use('/iclock', (req, res, next) => {
     if (req.method === 'POST') {
     }
     next();
 });
-
 app.use(express.json());
-
 app.use((req, res, next) => {
     next();
 });
-
-
-
 const distPath = path.join(__dirname, 'public');
 app.use(express.static(distPath));
-
-
-
-
 app.use('/api/reniec', dniRoutes);
 app.use('/api', gmailRoutes);
-app.use('/api/whmcs-demo', demoRoutes);
+// app.use('/api/whmcs-demo', demoRoutes);
 
 app.get('/api/dashboard/stats', async (req, res) => {
     try {
