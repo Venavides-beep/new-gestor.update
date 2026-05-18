@@ -287,7 +287,12 @@ export class AttendanceComponent implements OnInit {
 
                 if (existingMap.has(key)) {
                     // Día con registro existente en BD
-                    allDays.push(existingMap.get(key));
+                    const recordFromDb = existingMap.get(key);
+                    // Si no hay hora de entrada, siempre debe mostrarse como Falta (aunque tenga observación)
+                    if (!recordFromDb.clockIn || recordFromDb.clockIn === '-- : --') {
+                        recordFromDb.status = 'Falta';
+                    }
+                    allDays.push(recordFromDb);
                 } else if (day === todayDate) {
                     // HOY: usar datos en vivo del empleado si tiene entrada
                     allDays.push({
