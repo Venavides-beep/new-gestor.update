@@ -181,7 +181,7 @@
                                     style="display: flex; align-items: center; gap: 0.5rem;">
                                     <span *ngIf="record.observations" style="font-size: 0.8rem; color: #64748b; white-space: pre-line;">{{
                                         record.observations }}</span>
-                                    <button *ngIf="(record.status === 'Falta' || record.status === 'FALTA') && !record.isNonWorking"
+                                    <button *ngIf="(record.status === 'Falta' || record.status === 'FALTA' || record.status === 'Tarde' || record.status === 'TARDE') && !record.isNonWorking"
                                         class="action-btn text-warning"
                                         style="font-size: 0.75rem; padding: 0.25rem 0.5rem; border: 1px solid #fcd34d; background: #fffbeb; border-radius: 4px; cursor: pointer; color: #d97706; display: flex; align-items: center; gap: 4px;"
                                         title="Agregar/Editar Observación" (click)="startEditObservation(record)">
