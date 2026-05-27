@@ -161,7 +161,8 @@
                             [class.row-absent]="record.status === 'Falta' && !record.isNonWorking">
                             <td class="date-col">
                                 <strong>{{ record.date | date:'dd MMM':'UTC' }}</strong>
-                                <small>{{ record.date | date:'EEEE':'UTC' }} {{ getDayOfWeekInSpanish(record.date) }}</small>
+                                <small>{{ record.date | date:'EEEE':'UTC' }} {{ getDayOfWeekInSpanish(record.date)
+                                    }}</small>
                             </td>
                             <td>{{ record.clockIn }}</td>
                             <td>{{ record.clockOut }}</td>
@@ -179,9 +180,11 @@
                                 <!-- Modo lectura -->
                                 <div *ngIf="editingObservationRecord !== record"
                                     style="display: flex; align-items: center; gap: 0.5rem;">
-                                    <span *ngIf="record.observations" style="font-size: 0.8rem; color: #64748b; white-space: pre-line;">{{
+                                    <span *ngIf="record.observations"
+                                        style="font-size: 0.8rem; color: #64748b; white-space: pre-line;">{{
                                         record.observations }}</span>
-                                    <button *ngIf="(record.status === 'Falta' || record.status === 'FALTA' || record.status === 'Tarde' || record.status === 'TARDE') && !record.isNonWorking"
+                                    <button
+                                        *ngIf="(record.status === 'Falta' || record.status === 'FALTA' || record.status === 'Tarde' || record.status === 'TARDE') && !record.isNonWorking"
                                         class="action-btn text-warning"
                                         style="font-size: 0.75rem; padding: 0.25rem 0.5rem; border: 1px solid #fcd34d; background: #fffbeb; border-radius: 4px; cursor: pointer; color: #d97706; display: flex; align-items: center; gap: 4px;"
                                         title="Agregar/Editar Observación" (click)="startEditObservation(record)">
@@ -192,8 +195,7 @@
                                 <div *ngIf="editingObservationRecord === record"
                                     style="display: flex; flex-direction: column; gap: 0.4rem;">
                                     <textarea [(ngModel)]="inlineObservationText"
-                                        placeholder="Ej: Permiso médico, Vacaciones..."
-                                        rows="3"
+                                        placeholder="Ej: Permiso médico, Vacaciones..." rows="3"
                                         style="padding: 0.4rem 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; width: 100%; resize: vertical;"></textarea>
                                     <div style="display: flex; gap: 0.3rem;">
                                         <button class="btn-submit"
