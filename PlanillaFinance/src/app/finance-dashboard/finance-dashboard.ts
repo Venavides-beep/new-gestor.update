@@ -176,11 +176,13 @@ export class FinanceDashboardComponent implements OnInit {
                         (item.cuentaDebito || '').toLowerCase().includes('izipay');
 
                     if (isIzipay) {
-                        const bancoCaja = this.bancos.find((b: any) => b.name.toLowerCase().includes('caja'));
-                        if (!item.banco) item.banco = bancoCaja ? bancoCaja.name : 'CAJA VIRTUAL';
+                        if (item.estadoLocal !== 'Conciliado' && item.estadoLocal !== 'Pagado') {
+                            const bancoCaja = this.bancos.find((b: any) => b.name.toLowerCase().includes('caja'));
+                            if (!item.banco) item.banco = bancoCaja ? bancoCaja.name : 'CAJA VIRTUAL';
 
-                        const ctaIzipay = this.debitAccounts.find((d: any) => d.name.toLowerCase().includes('izipay'));
-                        item.cuentaDebito = ctaIzipay ? ctaIzipay.name : 'Izipay por cobrar';
+                            const ctaIzipay = this.debitAccounts.find((d: any) => d.name.toLowerCase().includes('izipay'));
+                            item.cuentaDebito = ctaIzipay ? ctaIzipay.name : 'Izipay por cobrar';
+                        }
                     } else {
                         if (!item.banco && item.WHMCS_InvoiceID) {
                             this.autoEscanearPDF(item, item.WHMCS_InvoiceID);
@@ -480,7 +482,8 @@ export class FinanceDashboardComponent implements OnInit {
                     headers: getAuthHeaders(),
                     body: JSON.stringify({
                         banco: inv.banco,
-                        codigoContable: inv.codigoContable
+                        codigoContable: inv.codigoContable,
+                        estadoLocal: inv.estadoLocal
                     })
                 });
                 this.audit.log(`Actualizó metadata de Egreso ID: ${inv.id}`, 'Finanzas', `Banco: ${inv.banco} | Código Contable: ${inv.codigoContable}`);

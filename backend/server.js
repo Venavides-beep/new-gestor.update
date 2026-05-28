@@ -2048,13 +2048,16 @@ export async function syncWhmcsInvoices(targetMonth = null, targetYear = null) {
                                 EstadoWHMCS = @estado, 
                                 Pagado = @pagado, 
                                 MontoBruto = @total,
-                                DepositoSalida = CASE WHEN UPPER(EstadoLocal) = 'PAGADO' THEN DepositoSalida ELSE @pagado END,
+                                DepositoSalida = CASE WHEN UPPER(EstadoLocal) IN ('PAGADO', 'CONCILIADO') THEN DepositoSalida ELSE @pagado END,
                                 -- PROTECCIÓN TOTAL: NUNCA se cambia el estado local si ya tiene un valor.
                                 EstadoLocal = ISNULL(NULLIF(EstadoLocal, ''), 
                                     CASE WHEN @banco = 'Caja Virtual' THEN 'Pendiente' ELSE 'Conciliado' END
                                 ),
-                                Banco = @banco,
-                                CuentaDebito = @cuentaDebito,
+                                -- NO SOBRESCRIBIR si ya fue conciliado manualmente
+                                Banco = CASE WHEN UPPER(EstadoLocal) IN ('PAGADO', 'CONCILIADO') AND NULLIF(Banco, '') IS NOT NULL THEN Banco ELSE @banco END,
+                                CuentaDebito = CASE WHEN UPPER(EstadoLocal) IN ('PAGADO', 'CONCILIADO') AND NULLIF(CuentaDebito, '') IS NOT NULL THEN CuentaDebito ELSE @cuentaDebito END,
+                                TipoMovimiento = CASE WHEN UPPER(EstadoLocal) IN ('PAGADO', 'CONCILIADO') AND NULLIF(TipoMovimiento, '') IS NOT NULL THEN TipoMovimiento ELSE @tipoMovimiento END,
+                                CodigoContable = CASE WHEN UPPER(EstadoLocal) IN ('PAGADO', 'CONCILIADO') AND NULLIF(CodigoContable, '') IS NOT NULL THEN CodigoContable ELSE @codContable END,
                                 UpdatedAt = @now
                             WHERE WHMCS_InvoiceID = @whmcsId
                         END
