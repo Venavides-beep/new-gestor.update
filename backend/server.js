@@ -3200,15 +3200,7 @@ app.get('/api/attendance/raw-logs', async (req, res) => {
     }
 });
 
-app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api/') && !req.path.startsWith('/iclock/')) {
-        res.sendFile(path.join(distPath, 'index.html'), (err) => {
-            if (err) {
-                res.status(404).send("Frontend not found in 'public' folder. Check volumes.");
-            }
-        });
-    }
-});
+// catch-all movido al final
 const admsPort = 8081;
 const admsServer = http.createServer(app);
 admsServer.listen(admsPort, '0.0.0.0', () => {
@@ -3223,10 +3215,6 @@ app.get('/api/attendance/raw-logs', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
-// =============================================
-// CONSULTA RUC - SUNAT (Proxy ultra-rápido anti-cuelgues)
-// =============================================
 app.get('/api/sunat/ruc/:numero', async (req, res) => {
     console.log(`\n[SUNAT-PROXY] 📥 Petición Recibida en el backend para RUC: ${req.params.numero}`);
     try {
@@ -3236,15 +3224,12 @@ app.get('/api/sunat/ruc/:numero', async (req, res) => {
             return res.status(400).json({ error: 'RUC debe tener 11 dígitos' });
         }
 
-        // Promesa que se rechaza automáticamente después de 6 segundos
         const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error('TIMEOUT_GLOBAL')), 6000)
         );
 
-        // Promesa que intenta llamar a la API
         const fetchApiPromise = async () => {
             try {
-                // Intento 1: apis.net.pe
                 const res1 = await axios.get(`https://api.apis.net.pe/v1/ruc?numero=${numero}`, { timeout: 3000 });
                 if (res1.data && res1.data.nombre) return res1.data;
             } catch (e) {
@@ -3252,7 +3237,6 @@ app.get('/api/sunat/ruc/:numero', async (req, res) => {
             }
 
             try {
-                // Intento 2: apisperu.com
                 const res2 = await axios.get(`https://dniruc.apisperu.com/api/v1/ruc/${numero}?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InByb2dyYW1hZG9yQGh3cGVydS5jb20ifQ.free`, { timeout: 3000 });
                 if (res2.data && res2.data.razonSocial) {
                     return { nombre: res2.data.razonSocial };
@@ -3264,7 +3248,6 @@ app.get('/api/sunat/ruc/:numero', async (req, res) => {
             throw new Error('Todas las APIs fallaron');
         };
 
-        // Ejecutar ambas promesas al mismo tiempo (gana la que termine primero)
         const result = await Promise.race([fetchApiPromise(), timeoutPromise]);
         res.json(result);
 
@@ -3273,6 +3256,17 @@ app.get('/api/sunat/ruc/:numero', async (req, res) => {
         res.status(502).json({
             error: 'No se pudo conectar a la SUNAT desde el servidor',
             message: error.message === 'TIMEOUT_GLOBAL' ? 'Tiempo de espera agotado' : error.message
+        });
+    }
+});
+
+// Sirve el frontend para cualquier otra ruta (DEBE ESTAR AL FINAL DE TODAS LAS RUTAS GET)
+app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api/') && !req.path.startsWith('/iclock/')) {
+        res.sendFile(path.join(distPath, 'index.html'), (err) => {
+            if (err) {
+                res.status(404).send("Frontend not found in 'public' folder. Check volumes.");
+            }
         });
     }
 });
