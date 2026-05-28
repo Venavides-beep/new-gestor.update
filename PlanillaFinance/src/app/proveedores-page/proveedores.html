@@ -1,31 +1,106 @@
-<div class="under-construction-container animate-fade-in">
-    <div class="maintenance-content">
-        <div class="graphic-wrapper">
-            <img src="/under_construction.png" alt="Página en Mantenimiento" class="construction-img">
+<h2 class="tittle">Tipos de Proveedores </h2>
+<hr>
+<a href="javascript:void(0)" class="enlace-registro" (click)="abrirModal()">+ Registrar Proveedor</a>
+<br>
+<table class="table-form-proveedores">
+    <thead>
+        <tr>
+            <th>RUC</th>
+            <th>Razón Social</th>
+            <th>Tipo de Proveedor</th>
+            <th>Fecha de Pago</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngIf="proveedoresList.length === 0">
+            <td colspan="6" style="text-align: center; padding: 20px;">No hay proveedores registrados.</td>
+        </tr>
+        <tr *ngFor="let p of proveedoresList" style="color: black;">
+            <td style="color: black;">{{ p.ruc }}</td>
+            <td style="color: black;">{{ p.razonSocial }}</td>
+            <td style="color: black;">{{ p.tipoProveedor }}</td>
+            <td style="color: black;">{{ p.fechaPago }}</td>
+            <td>
+                <span [ngStyle]="{'color': p.estado === 'PENDIENTE' ? '#dc2626' : '#16a34a', 'font-weight': '600'}">
+                    {{ p.estado }}
+                </span>
+            </td>
+            <td>
+                <button class="btn-action-icon" title="Ver Más">
+                    <!-- Icono Ojo -->
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </button>
+                <button class="btn-action-icon" title="Exportar">
+                    <!-- Icono Exportar -->
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                </button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="modal-overlay" *ngIf="showModal">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h3>Registrar Nuevo Proveedor</h3>
+            <button class="close-btn" (click)="cerrarModal()">&times;</button>
         </div>
 
-        <h2 class="title">Página en Mantenimiento</h2>
-        <p class="subtitle">
-            Esta sección se encuentra actualmente en creación y mantenimiento. Estamos trabajando para tenerla lista muy
-            pronto. ¡Disculpe las molestias!
-        </p>
+        <div class="modal-body">
+            <div class="form-group ruc-group">
+                <label>RUC</label>
+                <div class="ruc-input-container">
+                    <input type="text" [(ngModel)]="nuevoProveedor.ruc" placeholder="Ingrese RUC de 11 dígitos"
+                        maxlength="11">
+                    <button class="btn-validar" (click)="consultarRUC()" [disabled]="isSearchingRuc">
+                        {{ isSearchingRuc ? 'Buscando...' : 'Validar RUC' }}
+                    </button>
+                </div>
+            </div>
 
-        <div class="tasks-section">
-            <h3 class="tasks-title">Trabajos a realizar:</h3>
-            <ul class="tasks-list">
-                <li><i class="fa-solid fa-mobile-screen-button"></i> Notificación en el celular de pagos a proveedores
-                    pendientes</li>
-                <li><i class="fa-solid fa-address-book"></i> Registro de proveedor</li>
-                <li><i class="fa-solid fa-tags"></i> Tipo de proveedores</li>
-                <li><i class="fa-solid fa-money-bill-transfer"></i> Actualización de pagos a proveedores</li>
-            </ul>
+            <div class="form-group">
+                <label>Razón Social</label>
+                <input type="text" [(ngModel)]="nuevoProveedor.razonSocial" placeholder="Nombre de la empresa">
+            </div>
+
+            <div class="form-group">
+                <label>Tipo de Proveedor</label>
+                <select [(ngModel)]="nuevoProveedor.tipoProveedor">
+                    <option value="" disabled selected>Seleccione tipo...</option>
+                    <option *ngFor="let tipo of tiposProveedor" [value]="tipo">{{ tipo }}</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Fecha de Pago</label>
+                <input type="date" [(ngModel)]="nuevoProveedor.fechaPago">
+            </div>
+
+            <div class="form-group">
+                <label>Estado</label>
+                <select [(ngModel)]="nuevoProveedor.estado">
+                    <option value="PENDIENTE">Pendiente</option>
+                    <option value="PAGADO">Pagado</option>
+                </select>
+            </div>
         </div>
 
-        <div class="actions">
-            <a routerLink="/dashboard" class="btn btn-primary">
-                <i class="fa-solid fa-arrow-left"></i>
-                Volver al Inicio
-            </a>
+        <div class="modal-footer">
+            <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
+            <button class="btn-guardar" (click)="guardarProveedor()" [disabled]="isSaving">
+                {{ isSaving ? 'Guardando...' : 'Guardar Proveedor' }}
+            </button>
         </div>
     </div>
 </div>

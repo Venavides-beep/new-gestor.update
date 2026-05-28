@@ -111,7 +111,7 @@ export class AuthService {
         }
       }
     } catch (error) {
-      console.error('Error al sincronizar permisos:', error);
+      // console.error('Error al sincronizar permisos:', error);
     }
   }
   private startAutoRefresh() {

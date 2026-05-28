@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
@@ -15,11 +15,27 @@ export class LayoutComponent {
     isSidebarCollapsed = false;
     isMobileMenuOpen = false;
     currentUser: any = null;
+    isUserMenuOpen = false;
 
     constructor(private authService: AuthService, private router: Router) {
         this.authService.currentUser.subscribe(user => {
             this.currentUser = user;
         });
+    }
+
+    toggleUserMenu(event?: Event) {
+        if (event) {
+            event.stopPropagation();
+        }
+        this.isUserMenuOpen = !this.isUserMenuOpen;
+    }
+
+    @HostListener('document:click', ['$event'])
+    closeUserMenu(event: Event) {
+        const target = event.target as HTMLElement;
+        if (!target.closest('.user-dropdown-container')) {
+            this.isUserMenuOpen = false;
+        }
     }
 
     logout(event: Event) {
@@ -40,6 +56,14 @@ export class LayoutComponent {
 
     get isSuperAdmin(): boolean {
         return this.currentUser?.rol?.toUpperCase() === 'SUPER_ADMIN';
+    }
+
+    get pageTitle(): string {
+        const url = this.router.url;
+        if (url.includes('/finance') || url.includes('/whmcs-history') || url.includes('/proveedores')) {
+            return 'Gestión de Finanzas';
+        }
+        return 'Gestión de Planilla';
     }
 
     get userName(): string {
