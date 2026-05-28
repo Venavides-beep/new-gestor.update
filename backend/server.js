@@ -3225,7 +3225,7 @@ app.get('/api/attendance/raw-logs', async (req, res) => {
 });
 
 // =============================================
-// CONSULTA RUC - SUNAT (Proxy para evitar CORS)
+// CONSULTA RUC - SUNAT (Proxy con múltiples APIs de respaldo)
 // =============================================
 app.get('/api/sunat/ruc/:numero', async (req, res) => {
     try {
@@ -3235,15 +3235,50 @@ app.get('/api/sunat/ruc/:numero', async (req, res) => {
             return res.status(400).json({ error: 'RUC debe tener 11 dígitos' });
         }
 
-        const response = await axios.get(`https://api.apis.net.pe/v1/ruc?numero=${numero}`, {
-            timeout: 10000
-        });
+        // Lista de APIs a intentar (en orden de prioridad)
+        const apis = [
+            {
+                url: `https://api.apis.net.pe/v1/ruc?numero=${numero}`,
+                mapResponse: (data) => data
+            },
+            {
+                url: `https://dniruc.apisperu.com/api/v1/ruc/${numero}?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InByb2dyYW1hZG9yQGh3cGVydS5jb20ifQ.free`,
+                mapResponse: (data) => ({
+                    nombre: data.razonSocial,
+                    estado: data.estado,
+                    condicion: data.condicion,
+                    direccion: data.direccion,
+                    distrito: data.distrito,
+                    provincia: data.provincia,
+                    departamento: data.departamento,
+                    numeroDocumento: numero
+                })
+            }
+        ];
 
-        res.json(response.data);
+        let lastError = null;
+        for (const api of apis) {
+            try {
+                const response = await axios.get(api.url, { timeout: 5000 });
+                if (response.data && (response.data.nombre || response.data.razonSocial)) {
+                    return res.json(api.mapResponse(response.data));
+                }
+            } catch (err) {
+                lastError = err;
+                console.warn(`API fallida: ${api.url.split('?')[0]} - ${err.message}`);
+                continue; // Intentar la siguiente API
+            }
+        }
+
+        // Si ninguna API funcionó
+        res.status(502).json({
+            error: 'No se pudo consultar el RUC en ninguna API disponible',
+            message: lastError?.message || 'Todas las APIs fallaron'
+        });
     } catch (error) {
         console.error('Error consultando RUC en SUNAT:', error.message);
-        res.status(error.response?.status || 500).json({
-            error: 'No se pudo consultar el RUC',
+        res.status(500).json({
+            error: 'Error interno al consultar RUC',
             message: error.message
         });
     }
