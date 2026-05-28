@@ -2048,13 +2048,13 @@ export async function syncWhmcsInvoices(targetMonth = null, targetYear = null) {
                                 EstadoWHMCS = @estado, 
                                 Pagado = @pagado, 
                                 MontoBruto = @total,
-                                DepositoSalida = CASE WHEN UPPER(EstadoLocal) IN ('PAGADO', 'CONCILIADO') THEN DepositoSalida ELSE @pagado END,
+                                DepositoSalida = CASE WHEN UPPER(EstadoLocal) = 'PAGADO' THEN DepositoSalida ELSE @pagado END,
                                 -- PROTECCIÓN TOTAL: NUNCA se cambia el estado local si ya tiene un valor.
                                 EstadoLocal = ISNULL(NULLIF(EstadoLocal, ''), 
                                     CASE WHEN @banco = 'Caja Virtual' THEN 'Pendiente' ELSE 'Conciliado' END
                                 ),
-                                Banco = CASE WHEN UPPER(EstadoLocal) IN ('PAGADO', 'CONCILIADO') THEN Banco ELSE @banco END,
-                                CuentaDebito = CASE WHEN UPPER(EstadoLocal) IN ('PAGADO', 'CONCILIADO') THEN CuentaDebito ELSE @cuentaDebito END,
+                                Banco = @banco,
+                                CuentaDebito = @cuentaDebito,
                                 UpdatedAt = @now
                             WHERE WHMCS_InvoiceID = @whmcsId
                         END
