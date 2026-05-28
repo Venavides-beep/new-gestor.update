@@ -3228,6 +3228,7 @@ app.get('/api/attendance/raw-logs', async (req, res) => {
 // CONSULTA RUC - SUNAT (Proxy ultra-rápido anti-cuelgues)
 // =============================================
 app.get('/api/sunat/ruc/:numero', async (req, res) => {
+    console.log(`\n[SUNAT-PROXY] 📥 Petición Recibida en el backend para RUC: ${req.params.numero}`);
     try {
         const { numero } = req.params;
 
