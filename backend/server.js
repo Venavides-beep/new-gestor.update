@@ -3225,7 +3225,7 @@ app.get('/api/attendance/raw-logs', async (req, res) => {
 });
 
 // =============================================
-// CONSULTA RUC - SUNAT (Proxy con múltiples APIs de respaldo)
+// CONSULTA RUC - SUNAT (Proxy ultra-rápido anti-cuelgues)
 // =============================================
 app.get('/api/sunat/ruc/:numero', async (req, res) => {
     try {
@@ -3235,51 +3235,43 @@ app.get('/api/sunat/ruc/:numero', async (req, res) => {
             return res.status(400).json({ error: 'RUC debe tener 11 dígitos' });
         }
 
-        // Lista de APIs a intentar (en orden de prioridad)
-        const apis = [
-            {
-                url: `https://api.apis.net.pe/v1/ruc?numero=${numero}`,
-                mapResponse: (data) => data
-            },
-            {
-                url: `https://dniruc.apisperu.com/api/v1/ruc/${numero}?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InByb2dyYW1hZG9yQGh3cGVydS5jb20ifQ.free`,
-                mapResponse: (data) => ({
-                    nombre: data.razonSocial,
-                    estado: data.estado,
-                    condicion: data.condicion,
-                    direccion: data.direccion,
-                    distrito: data.distrito,
-                    provincia: data.provincia,
-                    departamento: data.departamento,
-                    numeroDocumento: numero
-                })
-            }
-        ];
+        // Promesa que se rechaza automáticamente después de 6 segundos
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('TIMEOUT_GLOBAL')), 6000)
+        );
 
-        let lastError = null;
-        for (const api of apis) {
+        // Promesa que intenta llamar a la API
+        const fetchApiPromise = async () => {
             try {
-                const response = await axios.get(api.url, { timeout: 5000 });
-                if (response.data && (response.data.nombre || response.data.razonSocial)) {
-                    return res.json(api.mapResponse(response.data));
-                }
-            } catch (err) {
-                lastError = err;
-                console.warn(`API fallida: ${api.url.split('?')[0]} - ${err.message}`);
-                continue; // Intentar la siguiente API
+                // Intento 1: apis.net.pe
+                const res1 = await axios.get(`https://api.apis.net.pe/v1/ruc?numero=${numero}`, { timeout: 3000 });
+                if (res1.data && res1.data.nombre) return res1.data;
+            } catch (e) {
+                console.warn('Fallo intento 1 API RUC:', e.message);
             }
-        }
 
-        // Si ninguna API funcionó
-        res.status(502).json({
-            error: 'No se pudo consultar el RUC en ninguna API disponible',
-            message: lastError?.message || 'Todas las APIs fallaron'
-        });
+            try {
+                // Intento 2: apisperu.com
+                const res2 = await axios.get(`https://dniruc.apisperu.com/api/v1/ruc/${numero}?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InByb2dyYW1hZG9yQGh3cGVydS5jb20ifQ.free`, { timeout: 3000 });
+                if (res2.data && res2.data.razonSocial) {
+                    return { nombre: res2.data.razonSocial };
+                }
+            } catch (e) {
+                console.warn('Fallo intento 2 API RUC:', e.message);
+            }
+
+            throw new Error('Todas las APIs fallaron');
+        };
+
+        // Ejecutar ambas promesas al mismo tiempo (gana la que termine primero)
+        const result = await Promise.race([fetchApiPromise(), timeoutPromise]);
+        res.json(result);
+
     } catch (error) {
-        console.error('Error consultando RUC en SUNAT:', error.message);
-        res.status(500).json({
-            error: 'Error interno al consultar RUC',
-            message: error.message
+        console.error('Error consultando RUC:', error.message);
+        res.status(502).json({
+            error: 'No se pudo conectar a la SUNAT desde el servidor',
+            message: error.message === 'TIMEOUT_GLOBAL' ? 'Tiempo de espera agotado' : error.message
         });
     }
 });
