@@ -2172,6 +2172,61 @@ app.get('/api/whmcs/invoices', async (req, res) => {
             const m = (inv.moneda || '').toString().toUpperCase();
             return m === 'PEN' || m === '1' || m === '' || m === 'SOLES' || m.includes('S/');
         });
+
+        // =============================================
+        // GESTIÓN DE PROVEEDORES
+        // =============================================
+
+        // Obtener todos los proveedores
+        app.get('/api/finance/proveedores', async (req, res) => {
+            try {
+                const pool = await poolFinance;
+                const result = await pool.request().query('SELECT * FROM FINANCE_PROVEEDORES ORDER BY FechaRegistro DESC');
+
+                // Mapear el formato para el frontend
+                const proveedores = result.recordset.map(p => ({
+                    id: p.Id,
+                    ruc: p.RUC,
+                    razonSocial: p.RazonSocial,
+                    tipoProveedor: p.TipoProveedor,
+                    fechaPago: p.FechaPago ? new Date(p.FechaPago.getTime() - (p.FechaPago.getTimezoneOffset() * 60000)).toISOString().slice(0, 10) : '',
+                    estado: p.Estado
+                }));
+
+                res.json(proveedores);
+            } catch (error) {
+                console.error('Error obteniendo proveedores:', error);
+                res.status(500).json({ error: 'Error al obtener proveedores' });
+            }
+        });
+
+        // Guardar un nuevo proveedor
+        app.post('/api/finance/proveedores', async (req, res) => {
+            try {
+                const { ruc, razonSocial, tipoProveedor, fechaPago, estado } = req.body;
+
+                if (!ruc || !razonSocial) {
+                    return res.status(400).json({ error: 'RUC y Razón Social son obligatorios' });
+                }
+
+                const pool = await poolFinance;
+                await pool.request()
+                    .input('ruc', mssql.VarChar, ruc)
+                    .input('razonSocial', mssql.VarChar, razonSocial)
+                    .input('tipoProveedor', mssql.VarChar, tipoProveedor || null)
+                    .input('fechaPago', mssql.Date, fechaPago ? new Date(fechaPago) : null)
+                    .input('estado', mssql.VarChar, estado || 'PENDIENTE')
+                    .query(`
+                INSERT INTO FINANCE_PROVEEDORES (RUC, RazonSocial, TipoProveedor, FechaPago, Estado)
+                VALUES (@ruc, @razonSocial, @tipoProveedor, @fechaPago, @estado)
+            `);
+
+                res.json({ success: true, message: 'Proveedor guardado correctamente' });
+            } catch (error) {
+                console.error('Error guardando proveedor:', error);
+                res.status(500).json({ error: 'Error al guardar el proveedor' });
+            }
+        });
         const isCurrentPeriod = currentMonth === (now.getMonth() + 1) && currentYear === now.getFullYear();
         const thisMonthPaid = isCurrentPeriod ? cachedThisMonthPaid : dbTotalGross;
         const thisMonthTotalGross = (isCurrentPeriod && cachedThisMonthTotalGross > 0)
@@ -2630,9 +2685,7 @@ cron.schedule('*/30 * * * *', async () => {
     }
 });
 
-// --- MONITOR DE CONEXIÓN ADMS ---
 app.use((req, res, next) => {
-    // Si la petición viene por el puerto 8081 o tiene rutas de iclock
     if (req.path.includes('/iclock/') || req.originalUrl.includes('/iclock/')) {
         console.log(`[ADMS-DEBUG] 📥 Petición Recibida: ${req.method} ${req.originalUrl} desde IP: ${req.ip}`);
     }
@@ -2701,13 +2754,11 @@ async function syncBiometricUserToDB(pin, name) {
     }
 }
 
-// --- CÁLCULO DE REPORTES DIARIOS ---
 async function updateDailyReport(biometricId, dateStr) {
     try {
         const pool = await poolPlanilla;
         if (!pool) return;
 
-        // 1. Obtener logs del día
         const logsRes = await pool.request()
             .input('bid', mssql.Int, biometricId)
             .input('date', mssql.Date, dateStr)
@@ -2823,7 +2874,6 @@ app.post('/iclock/cdata', async (req, res) => {
                     biometricUsersCache.set(pin.toString(), name);
                     userCount++;
 
-                    // Persistir en DB y vincular
                     syncBiometricUserToDB(pin, name);
 
                     if (!data.NAME) {
@@ -2895,7 +2945,6 @@ app.post('/iclock/cdata', async (req, res) => {
                         `);
                     savedCount++;
 
-                    // Actualizar reporte diario después de insertar el log
                     const dateOnly = new Date(checktime).toISOString().split('T')[0];
                     updateDailyReport(parseInt(userid), dateOnly);
                 } catch (dbErr) {
@@ -2921,7 +2970,6 @@ app.get('/iclock/getrequest', (req, res) => {
     res.setHeader('Content-Type', 'text/plain');
 
     if (SN) {
-        // Registrar el dispositivo si es la primera vez que conecta
         if (!knownDeviceSNs.has(SN)) {
             knownDeviceSNs.add(SN);
             console.log(`[ADMS] 📡 Dispositivo registrado: SN=${SN}. Total dispositivos: ${knownDeviceSNs.size}`);
@@ -2933,7 +2981,6 @@ app.get('/iclock/getrequest', (req, res) => {
 
         const queue = pendingCommands.get(SN);
 
-        // Mover globalCommands a la cola del dispositivo
         while (globalCommands.length > 0) {
             queue.push(globalCommands.shift());
         }
@@ -2959,7 +3006,6 @@ app.get('/api/attendance/force-biometric-sync', (req, res) => {
     res.json({ message: `Sincronización encolada para ${SN}. El equipo la recibirá en su próxima consulta.` });
 });
 
-// ─── ZKTeco: Ver dispositivos conectados ───────────────────────────────────
 app.get('/api/zkteco/devices', (req, res) => {
     const devices = Array.from(knownDeviceSNs).map(sn => ({
         sn,
@@ -2968,12 +3014,10 @@ app.get('/api/zkteco/devices', (req, res) => {
     res.json({ total: devices.length, devices });
 });
 
-// ─── ZKTeco: Función para encolar envío de usuario a la máquina ────────────
 const globalCommands = [];
 function pushUserToDevice(biometricId, nombre, apellidos) {
     if (!biometricId) return 0;
     const fullName = `${nombre || ''} ${apellidos || ''}`.trim().substring(0, 24); // ZKTeco max 24 chars
-    // Formato ADMS: campos separados por TAB
     const cmd = `DATA UPDATE USERINFO PIN=${biometricId}\tName=${fullName}\tPrivilege=0\tPassword=\tEnabled=1\tCardNo=0\tGroup=1\tTimeZone=0\tVerify=0`;
     let pushed = 0;
     if (knownDeviceSNs.size === 0) {
@@ -2990,7 +3034,6 @@ function pushUserToDevice(biometricId, nombre, apellidos) {
     return pushed;
 }
 
-// ─── ZKTeco: Endpoint manual para enviar un empleado a la máquina ──────────
 app.post('/api/zkteco/push-user', async (req, res) => {
     try {
         const { biometricId, nombre, apellidos, employeeId } = req.body;
@@ -2999,7 +3042,6 @@ app.post('/api/zkteco/push-user', async (req, res) => {
         let finalNombre = nombre;
         let finalApellidos = apellidos;
 
-        // Si se pasa employeeId, buscar los datos del empleado en la DB
         if (employeeId && !biometricId) {
             const pool = await poolPlanilla;
             const empRes = await pool.request()
@@ -3034,7 +3076,6 @@ app.post('/api/zkteco/push-user', async (req, res) => {
     }
 });
 
-// ─── ZKTeco: Sincronizar TODOS los empleados activos a la máquina ──────────
 app.post('/api/zkteco/sync-all-employees', async (req, res) => {
     try {
         const pool = await poolPlanilla;
@@ -3160,19 +3201,17 @@ app.get('/api/attendance/logs', async (req, res) => {
 
         const result = await pool.request().query(query + ' ORDER BY l.CHECKTIME DESC');
 
-        // Formatear para evitar el desfase de zona horaria (UTC -> Local)
         const logs = result.recordset.map(log => {
             const nombre = log.EMP_NOMBRE || log.BIO_NAME || `ID Desconocido (${log.USERID})`;
             const apellidos = log.EMP_APELLIDOS || '';
 
-            // Convertimos la fecha a un string local ISO sin la 'Z' para que el navegador no la mueva
             const checkTimeLocal = log.CHECKTIME ? new Date(log.CHECKTIME.getTime() - (log.CHECKTIME.getTimezoneOffset() * 60000)).toISOString().slice(0, 19).replace('T', ' ') : null;
 
             return {
                 ...log,
                 NOMBRE: nombre,
                 APELLIDOS: apellidos,
-                CHECKTIME: checkTimeLocal // Enviamos el string literal "YYYY-MM-DD HH:mm:ss"
+                CHECKTIME: checkTimeLocal
             };
         });
 
@@ -3188,7 +3227,6 @@ app.get('/api/attendance/raw-logs', async (req, res) => {
         const pool = await poolPlanilla;
         const result = await pool.request().query('SELECT TOP 50 * FROM ATTENDANCE_LOGS ORDER BY CHECKTIME DESC');
 
-        // Aplicamos el mismo ajuste de zona horaria para raw-logs
         const logs = result.recordset.map(log => ({
             ...log,
             CHECKTIME: log.CHECKTIME ? new Date(log.CHECKTIME.getTime() - (log.CHECKTIME.getTimezoneOffset() * 60000)).toISOString().slice(0, 19).replace('T', ' ') : null
@@ -3200,7 +3238,6 @@ app.get('/api/attendance/raw-logs', async (req, res) => {
     }
 });
 
-// catch-all movido al final
 const admsPort = 8081;
 const admsServer = http.createServer(app);
 admsServer.listen(admsPort, '0.0.0.0', () => {
@@ -3260,7 +3297,6 @@ app.get('/api/sunat/ruc/:numero', async (req, res) => {
     }
 });
 
-// Sirve el frontend para cualquier otra ruta (DEBE ESTAR AL FINAL DE TODAS LAS RUTAS GET)
 app.get('*', (req, res) => {
     if (!req.path.startsWith('/api/') && !req.path.startsWith('/iclock/')) {
         res.sendFile(path.join(distPath, 'index.html'), (err) => {
@@ -3294,4 +3330,3 @@ process.on('uncaughtException', (err) => {
     if (err && err.stack);
     process.exit(1);
 });
-//
