@@ -2463,6 +2463,60 @@ app.get('/api/finance/transaction-status', async (req, res) => {
 });
 
 
+// =============================================
+// PROVEEDORES
+// =============================================
+
+app.get('/api/finance/proveedores', async (req, res) => {
+    try {
+        const pool = await poolFinance;
+        const result = await pool.request()
+            .query(`
+                SELECT * FROM FINANCE_PROVEEDORES 
+                ORDER BY FechaRegistro DESC
+            `);
+
+        res.json(result.recordset);
+    } catch (error) {
+        console.error('Error al obtener proveedores:', error);
+        res.status(500).json({ error: 'Error al obtener proveedores' });
+    }
+});
+
+app.post('/api/finance/proveedores', async (req, res) => {
+    try {
+        const { RUC, RazonSocial, TipoProveedor, FechaPago, Estado } = req.body;
+        const pool = await poolFinance;
+
+        // Verificación de RUC duplicado
+        const check = await pool.request()
+            .input('ruc', mssql.VarChar(11), RUC)
+            .query('SELECT Id FROM FINANCE_PROVEEDORES WHERE RUC = @ruc');
+
+        if (check.recordset.length > 0) {
+            return res.status(409).json({ error: 'Este RUC ya está registrado como proveedor.' });
+        }
+
+        const request = pool.request();
+        request.input('ruc', mssql.VarChar(11), RUC);
+        request.input('razon', mssql.VarChar(255), RazonSocial);
+        request.input('tipo', mssql.VarChar(50), TipoProveedor || null);
+        request.input('fecha', mssql.Date, FechaPago || null);
+        request.input('estado', mssql.VarChar(20), Estado || 'Pendiente');
+
+        await request.query(`
+            INSERT INTO FINANCE_PROVEEDORES (RUC, RazonSocial, TipoProveedor, FechaPago, Estado)
+            VALUES (@ruc, @razon, @tipo, @fecha, @estado)
+        `);
+
+        res.json({ success: true, message: 'Proveedor registrado con éxito' });
+    } catch (error) {
+        console.error('Error al registrar proveedor:', error);
+        res.status(500).json({ error: 'Error al registrar proveedor' });
+    }
+});
+
+
 app.get('/api/finance/egresos', async (req, res) => {
     try {
         const pool = await poolFinance;
