@@ -3224,6 +3224,31 @@ app.get('/api/attendance/raw-logs', async (req, res) => {
     }
 });
 
+// =============================================
+// CONSULTA RUC - SUNAT (Proxy para evitar CORS)
+// =============================================
+app.get('/api/sunat/ruc/:numero', async (req, res) => {
+    try {
+        const { numero } = req.params;
+
+        if (!numero || numero.length !== 11) {
+            return res.status(400).json({ error: 'RUC debe tener 11 dígitos' });
+        }
+
+        const response = await axios.get(`https://api.apis.net.pe/v1/ruc?numero=${numero}`, {
+            timeout: 10000
+        });
+
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error consultando RUC en SUNAT:', error.message);
+        res.status(error.response?.status || 500).json({
+            error: 'No se pudo consultar el RUC',
+            message: error.message
+        });
+    }
+});
+
 app.use((err, req, res, next) => {
     console.error('--- ERROR GLOBAL DEL SERVIDOR ---');
     console.error(err.stack || err);
