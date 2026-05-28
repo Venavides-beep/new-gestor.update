@@ -2462,11 +2462,6 @@ app.get('/api/finance/transaction-status', async (req, res) => {
     }
 });
 
-
-// =============================================
-// PROVEEDORES
-// =============================================
-
 app.get('/api/finance/proveedores', async (req, res) => {
     try {
         const pool = await poolFinance;
@@ -2485,12 +2480,12 @@ app.get('/api/finance/proveedores', async (req, res) => {
 
 app.post('/api/finance/proveedores', async (req, res) => {
     try {
-        const { RUC, RazonSocial, TipoProveedor, FechaPago, Estado } = req.body;
+        const { ruc, razonSocial, tipoProveedor, fechaPago, estado } = req.body;
         const pool = await poolFinance;
 
         // Verificación de RUC duplicado
         const check = await pool.request()
-            .input('ruc', mssql.VarChar(11), RUC)
+            .input('ruc', mssql.VarChar(11), ruc)
             .query('SELECT Id FROM FINANCE_PROVEEDORES WHERE RUC = @ruc');
 
         if (check.recordset.length > 0) {
@@ -2498,11 +2493,11 @@ app.post('/api/finance/proveedores', async (req, res) => {
         }
 
         const request = pool.request();
-        request.input('ruc', mssql.VarChar(11), RUC);
-        request.input('razon', mssql.VarChar(255), RazonSocial);
-        request.input('tipo', mssql.VarChar(50), TipoProveedor || null);
-        request.input('fecha', mssql.Date, FechaPago || null);
-        request.input('estado', mssql.VarChar(20), Estado || 'Pendiente');
+        request.input('ruc', mssql.VarChar(11), ruc);
+        request.input('razon', mssql.VarChar(255), razonSocial);
+        request.input('tipo', mssql.VarChar(50), tipoProveedor || null);
+        request.input('fecha', mssql.Date, fechaPago ? new Date(fechaPago) : null);
+        request.input('estado', mssql.VarChar(20), estado || 'Pendiente');
 
         await request.query(`
             INSERT INTO FINANCE_PROVEEDORES (RUC, RazonSocial, TipoProveedor, FechaPago, Estado)
