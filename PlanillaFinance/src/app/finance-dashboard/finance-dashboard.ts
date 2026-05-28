@@ -63,7 +63,7 @@ export class FinanceDashboardComponent implements OnInit {
         numFactura: '',
         fecha: ''
     };
-
+    //
     selectedMonth: number;
     selectedYear: number;
     months = [
