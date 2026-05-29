@@ -12,10 +12,12 @@ import { API_URL, getAuthHeaders } from '../api-config';
 })
 export class ProveedoresComponent implements OnInit {
     showModal: boolean = false;
+    showModal2: boolean = false;
     isSearchingRuc: boolean = false;
     isSaving: boolean = false;
-    
+
     proveedoresList: any[] = [];
+    datsproveedor: any = {};
 
     nuevoProveedor: any = {
         ruc: '',
@@ -27,19 +29,25 @@ export class ProveedoresComponent implements OnInit {
 
     tiposProveedor = ['Servicios', 'Productos', 'Suscripciones', 'Otros'];
 
-    constructor() {}
+    constructor() { }
 
     ngOnInit() {
         this.cargarProveedores();
     }
-
     async cargarProveedores() {
         try {
             const response = await fetch(`${API_URL}/api/finance/proveedores`, {
                 headers: getAuthHeaders()
             });
             if (response.ok) {
-                this.proveedoresList = await response.json();
+                const data = await response.json();
+                this.proveedoresList = data.map((p: any) => ({
+                    ruc: p.RUC,
+                    razonSocial: p.RazonSocial,
+                    tipoProveedor: p.TipoProveedor,
+                    fechaPago: p.FechaPago ? p.FechaPago.split('T')[0] : '',
+                    estado: p.Estado
+                }));
             }
         } catch (error) {
             console.error('Error al cargar proveedores:', error);
@@ -56,9 +64,27 @@ export class ProveedoresComponent implements OnInit {
             estado: 'PENDIENTE'
         };
     }
-
+    verdatos(data: any) {
+        this.showModal2 = true;
+        this.datsproveedor = {
+            ruc: data.ruc,
+            razonSocial: data.razonSocial,
+            tipoProveedor: data.tipoProveedor,
+            fechaPago: data.fechaPago,
+            estado: data.estado
+        }
+        console.log('El ruc a mostrar es : :', data.ruc);
+        console.log('La razon social es :', data.razonSocial);
+        console.log('El tipo de proveedor es :', data.tipoProveedor);
+        console.log('La fecha de pago es :', data.fechaPago);
+        console.log('El estado es :', data.estado);
+    }
     cerrarModal() {
         this.showModal = false;
+    }
+
+    cerrarModal2() {
+        this.showModal2 = false;
     }
 
     async consultarRUC() {
@@ -69,7 +95,6 @@ export class ProveedoresComponent implements OnInit {
 
         this.isSearchingRuc = true;
         try {
-            // Consulta al BACKEND propio, que hace de proxy hacia la SUNAT
             const response = await fetch(`${API_URL}/api/sunat/ruc/${this.nuevoProveedor.ruc}`, {
                 headers: getAuthHeaders()
             });
@@ -101,7 +126,6 @@ export class ProveedoresComponent implements OnInit {
             });
 
             if (response.ok) {
-                // Volvemos a cargar la tabla para ver el nuevo registro
                 await this.cargarProveedores();
                 this.cerrarModal();
             } else {

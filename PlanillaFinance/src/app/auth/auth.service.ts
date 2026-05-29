@@ -111,13 +111,11 @@ export class AuthService {
         }
       }
     } catch (error) {
-      // console.error('Error al sincronizar permisos:', error);
     }
   }
   private startAutoRefresh() {
     if (this.autoRefreshStarted) return;
     this.autoRefreshStarted = true;
-    this.refreshPermissions();
     this.refreshInterval = setInterval(() => {
       this.refreshPermissions();
     }, 30000);
