@@ -54,6 +54,9 @@ interface EmployeeFormData {
     exitTime?: string;
     syncToBiometric?: boolean;
     turno?: string;
+    horaInicioTurno?: string;
+    horaFinTurno?: string;
+    usarBiometrico?: boolean;
 }
 
 @Component({
@@ -64,6 +67,9 @@ interface EmployeeFormData {
     styleUrl: './employees.css'
 })
 export class GestionEmpleadosComponent {
+    maxFechaNacimiento: string = new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0];
+    countryCode: string = '+51';
+    countryCodeEmergencia: string = '+51';
     searchTerm: string = '';
     showAddModal: boolean = false;
     submitted: boolean = false;
@@ -85,7 +91,7 @@ export class GestionEmpleadosComponent {
         calculoAfpMinimo: false,
         fechaInicio: new Date().toISOString().split('T')[0], fechaFinContrato: '', tipoContrato: '', horarioTrabajo: '', turno: '',
         banco: '', tipoCuenta: '', numeroCuenta: '', cci: '', nivelEducativo: '', estado: 'Activo',
-        biometricId: undefined, biometricPassword: '', entryTime: '', exitTime: '', syncToBiometric: false,
+        biometricId: undefined, biometricPassword: '', entryTime: '', exitTime: '', syncToBiometric: false, usarBiometrico: false
     };
 
     cargos: string[] = ['Técnico', 'Administrador', 'Vendedor', 'Gerente', 'Recepcionista', 'Programador', 'Administrativo', 'Ventas', 'Gerencia', 'Soporte Técnico', 'Diseño', 'Marketing'];
@@ -170,6 +176,86 @@ export class GestionEmpleadosComponent {
         if (!this.availableDepartamentos.includes(this.newEmployee.departamento)) {
             this.newEmployee.departamento = '';
         }
+    }
+
+    formatTelefono() {
+        if (!this.newEmployee.telefono) return;
+        let numbers = this.newEmployee.telefono.replace(/\D/g, '');
+        let formatted = '';
+
+        switch (this.countryCode) {
+            case '+51': // PE
+            case '+56': // CL
+            case '+34': // ES
+            case '+593': // EC
+                numbers = numbers.substring(0, 9);
+                formatted = numbers.replace(/(\d{3})(?=\d)/g, '$1 ').trim();
+                break;
+            case '+1': // US
+                numbers = numbers.substring(0, 10);
+                if (numbers.length <= 3) formatted = numbers;
+                else if (numbers.length <= 6) formatted = `(${numbers.slice(0,3)}) ${numbers.slice(3)}`;
+                else formatted = `(${numbers.slice(0,3)}) ${numbers.slice(3,6)}-${numbers.slice(6)}`;
+                break;
+            case '+52': // MX
+            case '+54': // AR
+            case '+57': // CO
+            case '+58': // VE
+                numbers = numbers.substring(0, 10);
+                if (numbers.length <= 3) formatted = numbers;
+                else if (numbers.length <= 6) formatted = `${numbers.slice(0,3)} ${numbers.slice(3)}`;
+                else formatted = `${numbers.slice(0,3)} ${numbers.slice(3,6)} ${numbers.slice(6)}`;
+                break;
+            case '+591': // BO
+                numbers = numbers.substring(0, 8);
+                if (numbers.length <= 3) formatted = numbers;
+                else formatted = `${numbers.slice(0,3)} ${numbers.slice(3)}`;
+                break;
+            default:
+                formatted = numbers.replace(/(\d{3})(?=\d)/g, '$1 ').trim();
+        }
+
+        this.newEmployee.telefono = formatted;
+    }
+
+    formatTelefonoEmergencia() {
+        if (!this.newEmployee.numeroEmergencia) return;
+        let numbers = this.newEmployee.numeroEmergencia.replace(/\D/g, '');
+        let formatted = '';
+
+        switch (this.countryCodeEmergencia) {
+            case '+51': // PE
+            case '+56': // CL
+            case '+34': // ES
+            case '+593': // EC
+                numbers = numbers.substring(0, 9);
+                formatted = numbers.replace(/(\d{3})(?=\d)/g, '$1 ').trim();
+                break;
+            case '+1': // US
+                numbers = numbers.substring(0, 10);
+                if (numbers.length <= 3) formatted = numbers;
+                else if (numbers.length <= 6) formatted = `(${numbers.slice(0,3)}) ${numbers.slice(3)}`;
+                else formatted = `(${numbers.slice(0,3)}) ${numbers.slice(3,6)}-${numbers.slice(6)}`;
+                break;
+            case '+52': // MX
+            case '+54': // AR
+            case '+57': // CO
+            case '+58': // VE
+                numbers = numbers.substring(0, 10);
+                if (numbers.length <= 3) formatted = numbers;
+                else if (numbers.length <= 6) formatted = `${numbers.slice(0,3)} ${numbers.slice(3)}`;
+                else formatted = `${numbers.slice(0,3)} ${numbers.slice(3,6)} ${numbers.slice(6)}`;
+                break;
+            case '+591': // BO
+                numbers = numbers.substring(0, 8);
+                if (numbers.length <= 3) formatted = numbers;
+                else formatted = `${numbers.slice(0,3)} ${numbers.slice(3)}`;
+                break;
+            default:
+                formatted = numbers.replace(/(\d{3})(?=\d)/g, '$1 ').trim();
+        }
+
+        this.newEmployee.numeroEmergencia = formatted;
     }
 
     formatDate(dateStr: any): string {
@@ -262,10 +348,12 @@ export class GestionEmpleadosComponent {
             nombre: '', apellidos: '', dni: '', sexo: '', nacionalidad: '', telefono: '', contactoEmergencia: '', numeroEmergencia: '', fechaNacimiento: '', direccion: '',
             email: '', cargo: '', departamento: '', tipoTrabajador: 'PLANILLA', regimenPensionario: 'SNP/ONP', sueldo: 0, asignacionFamiliar: false,
             calculoAfpMinimo: false,
-            fechaInicio: new Date().toISOString().split('T')[0], fechaFinContrato: '', tipoContrato: '', horarioTrabajo: '', turno: '',
+            fechaInicio: new Date().toISOString().split('T')[0], fechaFinContrato: '', tipoContrato: '', horarioTrabajo: '', turno: '', horaInicioTurno: '', horaFinTurno: '',
             banco: '', tipoCuenta: '', numeroCuenta: '', cci: '', nivelEducativo: '', estado: 'Activo',
-            biometricId: undefined, entryTime: '', exitTime: ''
+            biometricId: undefined, entryTime: '', exitTime: '', usarBiometrico: false
         };
+        this.countryCode = '+51';
+        this.countryCodeEmergencia = '+51';
         this.availableDepartamentos = [];
     }
 
@@ -283,12 +371,17 @@ export class GestionEmpleadosComponent {
             }
         }
         try {
+            const payload = { 
+                ...this.newEmployee, 
+                telefono: `${this.countryCode} ${this.newEmployee.telefono}`.trim(),
+                numeroEmergencia: this.newEmployee.numeroEmergencia ? `${this.countryCodeEmergencia} ${this.newEmployee.numeroEmergencia}`.trim() : ''
+            };
             const url = isEditing ? API_URL + `/api/empleados/${(this.newEmployee as any)._id}` : API_URL + '/api/empleados';
             const method = isEditing ? 'PUT' : 'POST';
             const response = await fetch(url, {
                 method: method,
                 headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.newEmployee)
+                body: JSON.stringify(payload)
             });
             if (response.ok) {
                 this.audit.log(
@@ -313,7 +406,38 @@ export class GestionEmpleadosComponent {
     viewEmployee(employee: any) {
         this.isViewOnly = true;
         this.submitted = false;
-        this.newEmployee = { ...employee, fechaNacimiento: this.formatDate(employee.fechaNacimiento), fechaInicio: this.formatDate(employee.fechaInicio), fechaFinContrato: this.formatDate(employee.fechaFinContrato) };
+        
+        let cCode = '+51';
+        let num = employee.telefono || '';
+        if (num.startsWith('+')) {
+            const parts = num.split(' ');
+            if (parts.length > 1) {
+                cCode = parts[0];
+                num = parts.slice(1).join(' ');
+            }
+        }
+        this.countryCode = cCode;
+        
+        let cCodeEmer = '+51';
+        let numEmer = employee.numeroEmergencia || '';
+        if (numEmer.startsWith('+')) {
+            const parts = numEmer.split(' ');
+            if (parts.length > 1) {
+                cCodeEmer = parts[0];
+                numEmer = parts.slice(1).join(' ');
+            }
+        }
+        this.countryCodeEmergencia = cCodeEmer;
+        
+        this.newEmployee = { 
+            ...employee, 
+            telefono: num,
+            numeroEmergencia: numEmer,
+            usarBiometrico: !!employee.biometricId,
+            fechaNacimiento: this.formatDate(employee.fechaNacimiento), 
+            fechaInicio: this.formatDate(employee.fechaInicio), 
+            fechaFinContrato: this.formatDate(employee.fechaFinContrato) 
+        };
         this.showAddModal = true;
         this.checkBiometricRegistration();
         if (this.newEmployee.cargo && this.departamentosPorCargo[this.newEmployee.cargo]) {
@@ -326,7 +450,38 @@ export class GestionEmpleadosComponent {
     editEmployee(employee: any) {
         this.isViewOnly = false;
         this.submitted = false;
-        this.newEmployee = { ...employee, fechaNacimiento: this.formatDate(employee.fechaNacimiento), fechaInicio: this.formatDate(employee.fechaInicio), fechaFinContrato: this.formatDate(employee.fechaFinContrato) };
+        
+        let cCode = '+51';
+        let num = employee.telefono || '';
+        if (num.startsWith('+')) {
+            const parts = num.split(' ');
+            if (parts.length > 1) {
+                cCode = parts[0];
+                num = parts.slice(1).join(' ');
+            }
+        }
+        this.countryCode = cCode;
+        
+        let cCodeEmer = '+51';
+        let numEmer = employee.numeroEmergencia || '';
+        if (numEmer.startsWith('+')) {
+            const parts = numEmer.split(' ');
+            if (parts.length > 1) {
+                cCodeEmer = parts[0];
+                numEmer = parts.slice(1).join(' ');
+            }
+        }
+        this.countryCodeEmergencia = cCodeEmer;
+        
+        this.newEmployee = { 
+            ...employee, 
+            telefono: num,
+            numeroEmergencia: numEmer,
+            usarBiometrico: !!employee.biometricId,
+            fechaNacimiento: this.formatDate(employee.fechaNacimiento), 
+            fechaInicio: this.formatDate(employee.fechaInicio), 
+            fechaFinContrato: this.formatDate(employee.fechaFinContrato) 
+        };
         this.showAddModal = true;
         this.checkBiometricRegistration();
         if (this.newEmployee.cargo && this.departamentosPorCargo[this.newEmployee.cargo]) {
@@ -378,5 +533,39 @@ export class GestionEmpleadosComponent {
             console.error('Error de conexión:', error);
             this.notification.error('Error de conexión con el servidor.');
         }
+    }
+
+    get availableHours() {
+        if (this.newEmployee.turno === 'Mañana') return ['05','06','07','08','09','10','11','12'];
+        if (this.newEmployee.turno === 'Tarde') return ['14','15','16','17','18'];
+        if (this.newEmployee.turno === 'Noche') return ['19','20','21','22','23','00','01','02','03','04']; 
+        return Array.from({length: 24}, (_, i) => i.toString().padStart(2, '0'));
+    }
+
+    get availableMinutes() {
+        return Array.from({length: 60}, (_, i) => i.toString().padStart(2, '0'));
+    }
+
+    updateTime(field: 'inicio' | 'fin', part: 'H' | 'M', event: any) {
+        const val = event.target.value;
+        if (!val) return;
+        
+        let current = field === 'inicio' ? (this.newEmployee.horaInicioTurno || '') : (this.newEmployee.horaFinTurno || '');
+        if (!current) current = '00:00';
+        let [h, m] = current.split(':');
+        if (!h) h = '00';
+        if (!m) m = '00';
+
+        if (part === 'H') h = val;
+        else m = val;
+
+        if (field === 'inicio') this.newEmployee.horaInicioTurno = `${h}:${m}`;
+        else this.newEmployee.horaFinTurno = `${h}:${m}`;
+    }
+
+    getHourParts(timeStr: string | undefined): { h: string, m: string } {
+        if (!timeStr) return { h: '', m: '' };
+        const parts = timeStr.split(':');
+        return { h: parts[0] || '', m: parts[1] || '' };
     }
 }
