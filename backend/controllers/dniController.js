@@ -63,7 +63,6 @@ async function consultarApiPeruDev(dni) {
 async function consultarRENIEC(dni) {
     try {
         const token = process.env.APIS_NET_PE_TOKEN || 'sk_14038.HppYB1ULaHGSNFFOCKFyORMdFUlE3Nzt';
-        // Usando v2 que es más estable y compatible con tokens sk_
         const url = `https://api.apis.net.pe/v2/reniec/dni?numero=${dni}`;
 
         const options = {
@@ -82,7 +81,6 @@ async function consultarRENIEC(dni) {
                 res.on('end', () => {
                     try {
                         const jsonData = JSON.parse(data);
-                        // En v2 la estructura puede variar ligeramente
                         if (res.statusCode === 200 && jsonData) {
                             console.log('✔ APIs.net.pe (v2): Datos encontrados.');
                             resolve({

@@ -788,6 +788,7 @@ app.get('/api/empleados', async (req, res) => {
             fechaInicio: emp.FECHA_INGRESO,
             fechaFinContrato: emp.FECHA_FIN_CONTRATO,
             horarioTrabajo: emp.JORNADA_LABORAL,
+            turno: emp.TURNO,
             banco: emp.BANCO,
             tipoCuenta: emp.TIPO_CUENTA,
             numeroCuenta: emp.NUMERO_CUENTA,
@@ -834,6 +835,7 @@ app.get('/api/empleados-archivados', async (req, res) => {
             fechaInicio: emp.FECHA_INGRESO,
             fechaFinContrato: emp.FECHA_FIN_CONTRATO,
             horarioTrabajo: emp.JORNADA_LABORAL,
+            turno: emp.TURNO,
             banco: emp.BANCO,
             tipoCuenta: emp.TIPO_CUENTA,
             numeroCuenta: emp.NUMERO_CUENTA,
@@ -866,6 +868,7 @@ app.get('/api/empleados-archivados', async (req, res) => {
             fechaInicio: (emp.FECHA_INGRESO === '-' ? null : emp.FECHA_INGRESO) || null,
             fechaFinContrato: emp.FechaArchivado,
             horarioTrabajo: (emp.JORNADA_LABORAL === '-' ? null : emp.JORNADA_LABORAL) || null,
+            turno: (emp.TURNO === '-' ? null : emp.TURNO) || null,
             banco: (emp.BANCO === '-' ? null : emp.BANCO) || null,
             tipoCuenta: (emp.TIPO_CUENTA === '-' ? null : emp.TIPO_CUENTA) || null,
             numeroCuenta: (emp.NUMERO_CUENTA === '-' ? null : emp.NUMERO_CUENTA) || null,
@@ -945,6 +948,7 @@ app.post('/api/empleados', async (req, res) => {
         request.input('entPrevis', mssql.VarChar(100), data.regimenPensionario || 'SNP/ONP');
         request.input('descAfpMin', mssql.Bit, data.calculoAfpMinimo ? 1 : 0);
         request.input('jorLab', mssql.VarChar(100), data.horarioTrabajo || null);
+        request.input('turno', mssql.VarChar(50), data.turno || null);
         request.input('fechaIng', mssql.Date, data.fechaInicio ? new Date(data.fechaInicio) : null);
         request.input('fechaFin', mssql.Date, data.fechaFinContrato ? new Date(data.fechaFinContrato) : null);
         request.input('correo', mssql.VarChar(150), data.email || null);
@@ -962,14 +966,14 @@ app.post('/api/empleados', async (req, res) => {
                 NOMBRE, APELLIDOS, DNI, GENERO, NACIONALIDAD, TELEFONO, NOMBRE_CONTACTO, 
                 NUMERO_EMERGENCIA, FECHA_NACIMIENTO, DIRECCION, CARGO, DEPARTAMENTO, 
                 TIPO_TRABAJADOR, SUELDO_BASE, ENTIDAD_PREVISIONAL, DESCUENTO_AFP_MINIMO,
-                JORNADA_LABORAL, FECHA_INGRESO, FECHA_FIN_CONTRATO, CORREO, BANCO, 
+                JORNADA_LABORAL, TURNO, FECHA_INGRESO, FECHA_FIN_CONTRATO, CORREO, BANCO, 
                 TIPO_CUENTA, NUMERO_CUENTA, CCI, BIOMETRIC_ID, ENTRY_TIME, EXIT_TIME, ACTIVO
             )
             OUTPUT INSERTED.*
             VALUES (
                 @nombre, @apellidos, @dni, @genero, @nac, @tel, @nomCont, 
                 @numEmerg, @fechaNac, @dir, @cargo, @dept, @tipo, @sueldo, @entPrevis,
-                @descAfpMin, @jorLab, @fechaIng, @fechaFin, @correo, @banco, @tipoCta, @numCta, @cci, @biometricId, @entryTime, @exitTime, @activo
+                @descAfpMin, @jorLab, @turno, @fechaIng, @fechaFin, @correo, @banco, @tipoCta, @numCta, @cci, @biometricId, @entryTime, @exitTime, @activo
             )
         `;
 
@@ -1015,6 +1019,7 @@ app.put('/api/empleados/:id', async (req, res) => {
         request.input('entPrevis', mssql.VarChar(100), data.regimenPensionario || 'SNP');
         request.input('descAfpMin', mssql.Bit, data.calculoAfpMinimo ? 1 : 0);
         request.input('jorLab', mssql.VarChar(100), data.horarioTrabajo || null);
+        request.input('turno', mssql.VarChar(50), data.turno || null);
         request.input('fechaIng', mssql.Date, data.fechaInicio ? new Date(data.fechaInicio) : null);
         request.input('fechaFin', mssql.Date, data.fechaFinContrato ? new Date(data.fechaFinContrato) : null);
         request.input('correo', mssql.VarChar(150), data.email || null);
@@ -1033,7 +1038,7 @@ app.put('/api/empleados/:id', async (req, res) => {
                 NUMERO_EMERGENCIA = @numEmerg, FECHA_NACIMIENTO = @fechaNac, DIRECCION = @dir,
                 CARGO = @cargo, DEPARTAMENTO = @dept, TIPO_TRABAJADOR = @tipo, 
                 SUELDO_BASE = @sueldo, ENTIDAD_PREVISIONAL = @entPrevis,
-                DESCUENTO_AFP_MINIMO = @descAfpMin, JORNADA_LABORAL = @jorLab,
+                DESCUENTO_AFP_MINIMO = @descAfpMin, JORNADA_LABORAL = @jorLab, TURNO = @turno,
                 FECHA_INGRESO = @fechaIng, FECHA_FIN_CONTRATO = @fechaFin, 
                 CORREO = @correo, BANCO = @banco, TIPO_CUENTA = @tipoCta, 
                 NUMERO_CUENTA = @numCta, CCI = @cci,
@@ -1246,6 +1251,7 @@ app.put('/api/empleados/:id/reactivar', async (req, res) => {
         request.input('entPrevis', mssql.VarChar(100), data.regimenPensionario || 'SNP/ONP');
         request.input('descAfpMin', mssql.Bit, data.calculoAfpMinimo ? 1 : 0);
         request.input('jorLab', mssql.VarChar(100), data.horarioTrabajo || null);
+        request.input('turno', mssql.VarChar(50), data.turno || null);
         request.input('fechaIng', mssql.Date, data.fechaInicio ? new Date(data.fechaInicio) : null);
         request.input('fechaFin', mssql.Date, null);
         request.input('correo', mssql.VarChar(150), data.email || null);
@@ -1263,7 +1269,7 @@ app.put('/api/empleados/:id/reactivar', async (req, res) => {
                 DIRECCION = @dir, CARGO = @cargo, DEPARTAMENTO = @dept, 
                 TIPO_TRABAJADOR = @tipo, SUELDO_BASE = @sueldo, 
                 ENTIDAD_PREVISIONAL = @entPrevis, DESCUENTO_AFP_MINIMO = @descAfpMin,
-                JORNADA_LABORAL = @jorLab, FECHA_INGRESO = @fechaIng, 
+                JORNADA_LABORAL = @jorLab, TURNO = @turno, FECHA_INGRESO = @fechaIng, 
                 FECHA_FIN_CONTRATO = @fechaFin, CORREO = @correo, BANCO = @banco, 
                 TIPO_CUENTA = @tipoCta, NUMERO_CUENTA = @numCta, CCI = @cci, ACTIVO = @activo
             WHERE ID_EMPLOYEE = @id

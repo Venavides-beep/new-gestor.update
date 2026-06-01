@@ -53,6 +53,7 @@ interface EmployeeFormData {
     entryTime?: string;
     exitTime?: string;
     syncToBiometric?: boolean;
+    turno?: string;
 }
 
 @Component({
@@ -82,7 +83,7 @@ export class GestionEmpleadosComponent {
         nombre: '', apellidos: '', dni: '', sexo: '', nacionalidad: '', telefono: '', contactoEmergencia: '', numeroEmergencia: '', fechaNacimiento: '', direccion: '',
         email: '', cargo: '', departamento: '', tipoTrabajador: 'PLANILLA', regimenPensionario: 'SNP/ONP', sueldo: 0, asignacionFamiliar: false,
         calculoAfpMinimo: false,
-        fechaInicio: new Date().toISOString().split('T')[0], fechaFinContrato: '', tipoContrato: '', horarioTrabajo: '',
+        fechaInicio: new Date().toISOString().split('T')[0], fechaFinContrato: '', tipoContrato: '', horarioTrabajo: '', turno: '',
         banco: '', tipoCuenta: '', numeroCuenta: '', cci: '', nivelEducativo: '', estado: 'Activo',
         biometricId: undefined, biometricPassword: '', entryTime: '', exitTime: '', syncToBiometric: false,
     };
@@ -116,7 +117,7 @@ export class GestionEmpleadosComponent {
     async checkBiometricRegistration() {
         console.log('--- VERIFICANDO REGISTRO BIOMÉTRICO ---');
         console.log('ID a consultar:', this.newEmployee.biometricId);
-        
+
         if (!this.newEmployee.biometricId) {
             console.log('Sin ID, limpiando estado.');
             this.biometricStatus = '';
@@ -127,19 +128,19 @@ export class GestionEmpleadosComponent {
         try {
             const url = `${API_URL}/api/zkteco/check-user/${this.newEmployee.biometricId}`;
             console.log('Llamando a:', url);
-            
+
             const response = await fetch(url, {
                 headers: getAuthHeaders()
             });
 
             console.log('Respuesta verificación recibida. Status:', response.status);
-            
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('--- DATOS RECIBIDOS DEL SERVIDOR ---');
-                    console.log(JSON.stringify(data, null, 2));
-                    
-                    if (data.exists) {
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('--- DATOS RECIBIDOS DEL SERVIDOR ---');
+                console.log(JSON.stringify(data, null, 2));
+
+                if (data.exists) {
                     console.log('USUARIO ENCONTRADO EN EQUIPO. Bloqueando UI.');
                     this.biometricStatus = '✅ Usuario ya registrado en equipo';
                     this.isBiometricRegistered = true;
@@ -261,7 +262,7 @@ export class GestionEmpleadosComponent {
             nombre: '', apellidos: '', dni: '', sexo: '', nacionalidad: '', telefono: '', contactoEmergencia: '', numeroEmergencia: '', fechaNacimiento: '', direccion: '',
             email: '', cargo: '', departamento: '', tipoTrabajador: 'PLANILLA', regimenPensionario: 'SNP/ONP', sueldo: 0, asignacionFamiliar: false,
             calculoAfpMinimo: false,
-            fechaInicio: new Date().toISOString().split('T')[0], fechaFinContrato: '', tipoContrato: '', horarioTrabajo: '',
+            fechaInicio: new Date().toISOString().split('T')[0], fechaFinContrato: '', tipoContrato: '', horarioTrabajo: '', turno: '',
             banco: '', tipoCuenta: '', numeroCuenta: '', cci: '', nivelEducativo: '', estado: 'Activo',
             biometricId: undefined, entryTime: '', exitTime: ''
         };

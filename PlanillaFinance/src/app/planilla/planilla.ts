@@ -80,14 +80,12 @@ export class PlanillaComponent implements OnInit {
             });
             const data = await empResponse.json();
 
-            // Verificamos si la respuesta es realmente una lista (Array)
             if (!Array.isArray(data)) {
                 console.warn('La respuesta de la planilla no es una lista:', data);
                 this.employees = [];
                 return;
             }
 
-            // Calculate current month index (0-11)
             const monthNames = [
                 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
                 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
@@ -100,8 +98,8 @@ export class PlanillaComponent implements OnInit {
                 const validBonos = bonosDetalle.filter((b: any) => {
                     if (b.permanente) return true;
                     if (!b.fecha) return false;
-                    const bd = new Date(b.fecha);
-                    return bd.getMonth() === currentMonthIndex && bd.getFullYear() === this.currentYear;
+                    const [yyyy, mm] = b.fecha.split('-').map(Number);
+                    return (mm - 1) === currentMonthIndex && yyyy === this.currentYear;
                 });
                 const bonosTotal = validBonos.reduce((sum: number, b: any) => sum + (b.monto || 0), 0);
 
@@ -110,7 +108,6 @@ export class PlanillaComponent implements OnInit {
                     bonosDetalle: bonosDetalle,
                     bonos: bonosTotal,
                     horasExtras: emp.horasExtras || 0,
-                    // Use backend-calculated values from ADVANCES table
                     adelanto: emp.adelanto || 0,
                     prestamo: emp.prestamo || 0,
                     faltasDias: emp.faltasDias || 0,
@@ -565,8 +562,9 @@ export class PlanillaComponent implements OnInit {
         const itemsFiltrados = (emp.bonosDetalle || []).filter((b: any) => {
             if (b.permanente) return true;
             if (!b.fecha) return false;
-            const bd = new Date(b.fecha);
-            return bd.getMonth() === currentMonthIndex && bd.getFullYear() === this.currentYear;
+            // Parsear directamente el string para evitar bug de zona horaria (UTC vs local)
+            const [yyyy, mm] = b.fecha.split('-').map(Number);
+            return (mm - 1) === currentMonthIndex && yyyy === this.currentYear;
         });
 
         this.bonoDetail = {
@@ -587,7 +585,11 @@ export class PlanillaComponent implements OnInit {
 
     addBonoItem() {
         if (this.bonoDetail.newItem.monto > 0) {
-            this.bonoDetail.items.push({ ...this.bonoDetail.newItem });
+            // Si no es permanente y no tiene fecha, asignar hoy
+            if (!this.bonoDetail.newItem.permanente && !this.bonoDetail.newItem.fecha) {
+                this.bonoDetail.newItem.fecha = new Date().toISOString().split('T')[0];
+            }
+            this.bonoDetail.items = [...this.bonoDetail.items, { ...this.bonoDetail.newItem }];
             this.bonoDetail.newItem = {
                 motivo: '',
                 fecha: new Date().toISOString().split('T')[0],
@@ -610,12 +612,12 @@ export class PlanillaComponent implements OnInit {
             ];
             const currentMonthIndex = monthNames.findIndex(m => m === this.currentMonth.toLowerCase());
 
-            // Al guardar: solo conservar bonos permanentes + del mes actual (limpiar meses anteriores del borrador)
             const bonosLimpios = this.bonoDetail.items.filter((b: any) => {
                 if (b.permanente) return true;
                 if (!b.fecha) return false;
-                const bd = new Date(b.fecha);
-                return bd.getMonth() === currentMonthIndex && bd.getFullYear() === this.currentYear;
+                // Parsear directamente el string para evitar bug de zona horaria (UTC vs local)
+                const [yyyy, mm] = b.fecha.split('-').map(Number);
+                return (mm - 1) === currentMonthIndex && yyyy === this.currentYear;
             });
 
             emp.bonosDetalle = bonosLimpios;
