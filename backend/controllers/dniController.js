@@ -1,10 +1,18 @@
 
 import https from 'https';
 import { Buffer } from 'buffer';
+import fs from 'fs';
 
 async function consultarApiPeruDev(dni) {
     try {
-        const token = process.env.APIPERUDEV_TOKEN || 'N1DvhA0R9U1rssITvTVU6rM95RjnELBqii07Cayuw0ekRsKL9e';
+        let token = process.env.APIPERUDEV_TOKEN;
+        if (!token) {
+            try {
+                token = fs.readFileSync('/run/secrets/APIPERUDEV_TOKEN', 'utf8').trim();
+            } catch (err) {
+                token = 'sruLwUtgJNTCnHhIWcZOVoBfqERINuiT1pNCsINdWSoYJ4bNsHkjE4joclXj';
+            }
+        }
         const url = 'https://apiperu.dev/api/dni';
 
         const postData = JSON.stringify({ dni: dni });
