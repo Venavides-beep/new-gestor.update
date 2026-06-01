@@ -16,11 +16,32 @@ export class LayoutComponent {
     isMobileMenuOpen = false;
     currentUser: any = null;
     isUserMenuOpen = false;
+    showNotifications = false;
+
+    notifications = [
+        { id: 1, proveedor: 'Distribuidora Peruana S.A.', monto: 1500, fechaVence: '2026-06-03', leido: false },
+        { id: 2, proveedor: 'Soluciones Tecnológicas E.I.R.L.', monto: 4200, fechaVence: '2026-06-05', leido: false },
+        { id: 3, proveedor: 'Servicios Logísticos S.A.C.', monto: 850, fechaVence: '2026-06-10', leido: false }
+    ];
 
     constructor(private authService: AuthService, private router: Router) {
         this.authService.currentUser.subscribe(user => {
             this.currentUser = user;
         });
+    }
+
+    get pendingNotificationsCount(): number {
+        return this.notifications.filter(n => !n.leido).length;
+    }
+
+    toggleNotifications(event: Event) {
+        event.stopPropagation();
+        this.showNotifications = !this.showNotifications;
+    }
+
+    markAllAsRead(event: Event) {
+        event.stopPropagation();
+        this.notifications.forEach(n => n.leido = true);
     }
 
     toggleUserMenu(event?: Event) {
@@ -35,6 +56,7 @@ export class LayoutComponent {
         const target = event.target as HTMLElement;
         if (!target.closest('.user-dropdown-container')) {
             this.isUserMenuOpen = false;
+            this.showNotifications = false;
         }
     }
 

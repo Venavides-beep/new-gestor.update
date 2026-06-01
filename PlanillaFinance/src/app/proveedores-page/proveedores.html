@@ -1,11 +1,12 @@
 <h2 class="tittle">Tipos de Proveedores </h2>
 <hr>
-<a href="javascript:void(0)" class="enlace-registro" (click)="abrirModal()">+ Registrar Proveedor</a>
-<br>
+<div style="width: 90%; margin: 0 auto 15px auto; text-align: right;">
+    <a href="javascript:void(0)" class="enlace-registro" (click)="abrirModal()">+ Registrar Proveedor</a>
+</div>
 <table class="table-form-proveedores">
     <thead>
         <tr>
-            <th>RUC</th>
+            <th>RUC / Sitio Web</th>
             <th>Razón Social</th>
             <th>Tipo de Proveedor</th>
             <th>Fecha de Pago</th>
@@ -19,7 +20,7 @@
             <td colspan="6" style="text-align: center; padding: 20px;">No hay proveedores registrados.</td>
         </tr>
         <tr *ngFor="let p of proveedoresList" style="color: black;">
-            <td style="color: black;">{{ p.ruc }}</td>
+            <td style="color: black;">{{ p.ruc || p.url || '-' }}</td>
             <td style="color: black;">{{ p.razonSocial }}</td>
             <td style="color: black;">{{ p.tipoProveedor }}</td>
             <td style="color: black;">{{ p.fechaPago }}</td>
@@ -58,7 +59,7 @@
 
         <div class="modal-body">
             <div class="form-group ruc-group">
-                <label>RUC</label>
+                <label>RUC (Opcional)</label>
                 <div class="ruc-input-container">
                     <input type="text" [(ngModel)]="nuevoProveedor.ruc" placeholder="Ingrese RUC de 11 dígitos"
                         maxlength="11">
@@ -69,8 +70,14 @@
             </div>
 
             <div class="form-group">
+                <label>Sitio Web / URL (Opcional)</label>
+                <input type="text" [(ngModel)]="nuevoProveedor.url" placeholder="Ej: https://www.dominio.com">
+            </div>
+
+            <div class="form-group">
                 <label>Razón Social</label>
-                <input type="text" [(ngModel)]="nuevoProveedor.razonSocial" placeholder="Nombre de la empresa">
+                <input type="text" [(ngModel)]="nuevoProveedor.razonSocial"
+                    placeholder="Nombre de la empresa o dominio">
             </div>
 
             <div class="form-group">
@@ -104,11 +111,6 @@
     </div>
 </div>
 
-
-<!--
-    VIEW DATS PROVEEDORS
--->
-
 <div class="view-proveedors" *ngIf="showModal2">
     <div class="conteiner-dats">
         <div class="header-view-dats">
@@ -120,8 +122,11 @@
                 <label>RUC</label>
                 <div class="ruc-input-container">
                     <input type="text" [(ngModel)]="datsproveedor.ruc" disabled>
-
                 </div>
+            </div>
+            <div class="form-group">
+                <label>Sitio Web / URL</label>
+                <input type="text" [(ngModel)]="datsproveedor.url" disabled>
             </div>
             <div class="form-group">
                 <label>Razón Social</label>
@@ -149,9 +154,7 @@
         <br>
         <div class="footer-view-dats">
             <button class="btn-cancelar" (click)="cerrarModal2()">Cancelar</button>
-            <!--<button class="btn-guardar" (click)="guardarProveedor()" [disabled]="isSaving">
-                {{ isSaving ? 'Guardando...' : 'Guardar Proveedor' }}
-            </button>-->
+
         </div>
     </div>
 </div>

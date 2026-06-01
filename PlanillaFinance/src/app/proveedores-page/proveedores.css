@@ -9,10 +9,7 @@
 }
 
 .enlace-registro {
-    display: block;
-    width: 90%;
-    margin: 0 auto;
-    text-align: right;
+    display: inline-block;
     font-family: var(--fuente-principal);
     font-weight: 600;
     text-decoration: none;

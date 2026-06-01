@@ -10,7 +10,6 @@ import { fileURLToPath } from 'url';
 import http from 'http';
 import dniRoutes from './routes/dniRoutes.js';
 import gmailRoutes from './integrations/gmailRoutes.js';
-// import demoRoutes from './routes/endpoint-demo-test.js';
 
 const app = express();
 app.set('trust proxy', true);
@@ -2473,6 +2472,27 @@ app.get('/api/finance/transaction-status', async (req, res) => {
     }
 });
 
+setTimeout(async () => {
+    try {
+        const pool = await poolFinance;
+        await pool.request().query(`
+            IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'FINANCE_PROVEEDORES' AND COLUMN_NAME = 'RUC' AND IS_NULLABLE = 'NO')
+            BEGIN
+                ALTER TABLE FINANCE_PROVEEDORES ALTER COLUMN RUC VARCHAR(11) NULL;
+            END
+        `);
+        await pool.request().query(`
+            IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'FINANCE_PROVEEDORES' AND COLUMN_NAME = 'Url')
+            BEGIN
+                ALTER TABLE FINANCE_PROVEEDORES ADD Url VARCHAR(255) NULL;
+            END
+        `);
+        console.log('Migración de tabla FINANCE_PROVEEDORES ejecutada con éxito.');
+    } catch (err) {
+        console.error('Error al ejecutar migración de proveedores:', err);
+    }
+}, 5000);
+
 app.get('/api/finance/proveedores', async (req, res) => {
     try {
         const pool = await poolFinance;
@@ -2491,28 +2511,31 @@ app.get('/api/finance/proveedores', async (req, res) => {
 
 app.post('/api/finance/proveedores', async (req, res) => {
     try {
-        const { ruc, razonSocial, tipoProveedor, fechaPago, estado } = req.body;
+        const { ruc, razonSocial, tipoProveedor, fechaPago, estado, url } = req.body;
         const pool = await poolFinance;
 
-        // Verificación de RUC duplicado
-        const check = await pool.request()
-            .input('ruc', mssql.VarChar(11), ruc)
-            .query('SELECT Id FROM FINANCE_PROVEEDORES WHERE RUC = @ruc');
+        // Verificación de RUC duplicado (solo si se ingresa RUC)
+        if (ruc) {
+            const check = await pool.request()
+                .input('ruc', mssql.VarChar(11), ruc)
+                .query('SELECT Id FROM FINANCE_PROVEEDORES WHERE RUC = @ruc');
 
-        if (check.recordset.length > 0) {
-            return res.status(409).json({ error: 'Este RUC ya está registrado como proveedor.' });
+            if (check.recordset.length > 0) {
+                return res.status(409).json({ error: 'Este RUC ya está registrado como proveedor.' });
+            }
         }
 
         const request = pool.request();
-        request.input('ruc', mssql.VarChar(11), ruc);
+        request.input('ruc', mssql.VarChar(11), ruc || null);
         request.input('razon', mssql.VarChar(255), razonSocial);
         request.input('tipo', mssql.VarChar(50), tipoProveedor || null);
         request.input('fecha', mssql.Date, fechaPago ? new Date(fechaPago) : null);
         request.input('estado', mssql.VarChar(20), estado || 'Pendiente');
+        request.input('url', mssql.VarChar(255), url || null);
 
         await request.query(`
-            INSERT INTO FINANCE_PROVEEDORES (RUC, RazonSocial, TipoProveedor, FechaPago, Estado)
-            VALUES (@ruc, @razon, @tipo, @fecha, @estado)
+            INSERT INTO FINANCE_PROVEEDORES (RUC, RazonSocial, TipoProveedor, FechaPago, Estado, Url)
+            VALUES (@ruc, @razon, @tipo, @fecha, @estado, @url)
         `);
 
         res.json({ success: true, message: 'Proveedor registrado con éxito' });

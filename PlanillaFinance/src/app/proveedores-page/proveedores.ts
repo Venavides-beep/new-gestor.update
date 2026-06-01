@@ -24,7 +24,8 @@ export class ProveedoresComponent implements OnInit {
         razonSocial: '',
         tipoProveedor: '',
         fechaPago: '',
-        estado: 'PENDIENTE'
+        estado: 'PENDIENTE',
+        url: ''
     };
 
     tiposProveedor = ['Servicios', 'Productos', 'Suscripciones', 'Otros'];
@@ -46,7 +47,8 @@ export class ProveedoresComponent implements OnInit {
                     razonSocial: p.RazonSocial,
                     tipoProveedor: p.TipoProveedor,
                     fechaPago: p.FechaPago ? p.FechaPago.split('T')[0] : '',
-                    estado: p.Estado
+                    estado: p.Estado,
+                    url: p.Url || ''
                 }));
             }
         } catch (error) {
@@ -61,7 +63,8 @@ export class ProveedoresComponent implements OnInit {
             razonSocial: '',
             tipoProveedor: '',
             fechaPago: '',
-            estado: 'PENDIENTE'
+            estado: 'PENDIENTE',
+            url: ''
         };
     }
     verdatos(data: any) {
@@ -71,13 +74,15 @@ export class ProveedoresComponent implements OnInit {
             razonSocial: data.razonSocial,
             tipoProveedor: data.tipoProveedor,
             fechaPago: data.fechaPago,
-            estado: data.estado
+            estado: data.estado,
+            url: data.url
         }
         console.log('El ruc a mostrar es : :', data.ruc);
         console.log('La razon social es :', data.razonSocial);
         console.log('El tipo de proveedor es :', data.tipoProveedor);
         console.log('La fecha de pago es :', data.fechaPago);
         console.log('El estado es :', data.estado);
+        console.log('La URL es :', data.url);
     }
     cerrarModal() {
         this.showModal = false;

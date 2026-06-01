@@ -88,23 +88,70 @@
             <div class="user-dropdown-container">
                 <div class="user-trigger" (click)="toggleUserMenu($event)">
                     <span class="user-name-label">Hola, {{ userName }}</span>
-                    <img src="/avatar.png" alt="User Avatar" class="user-avatar">
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <img src="/avatar.png" alt="User Avatar" class="user-avatar">
+                        <span *ngIf="pendingNotificationsCount > 0" class="notification-badge-dot"></span>
+                    </div>
                     <i class="fa-solid fa-chevron-down arrow-icon" [class.rotated]="isUserMenuOpen"></i>
                 </div>
-                
-                <div class="dropdown-menu-box" [class.show]="isUserMenuOpen">
-                    <div class="dropdown-header">
-                        <span class="user-greeting">Hola,</span>
-                        <span class="user-full-name">{{ userName }}</span>
+
+                <div class="dropdown-menu-box" [class.show]="isUserMenuOpen" [class.expanded]="showNotifications">
+                    <div *ngIf="showNotifications" class="notif-container-view">
+                        <div class="notif-full-header">
+                            <button class="btn-back-notif" (click)="toggleNotifications($event)">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </button>
+                            <span class="notif-full-title">Notificaciones</span>
+                        </div>
+
+                        <div class="notif-full-subheader">
+                            <span class="clear-all-link" (click)="markAllAsRead($event)">Marcar como leídos</span>
+                        </div>
+
+                        <div class="notif-section-title">Vencimientos de la semana</div>
+
+                        <div class="notif-full-list">
+                            <div class="notif-full-item" *ngFor="let notif of notifications"
+                                [class.unread]="!notif.leido">
+                                <div class="notif-info-row">
+                                    <span class="notif-prov-name">{{ notif.proveedor }}</span>
+                                    <span class="notif-prov-date">{{ notif.fechaVence }}</span>
+                                </div>
+                                <div class="notif-amount-row">
+                                    <span class="notif-amount-val">S/. {{ notif.monto }}</span>
+                                    <span class="unread-dot-blue" *ngIf="!notif.leido"></span>
+                                </div>
+                            </div>
+
+                            <div class="notification-empty" *ngIf="notifications.length === 0">
+                                No tienes notificaciones pendientes.
+                            </div>
+                        </div>
                     </div>
-                    <div class="dropdown-divider"></div>
-                    <div routerLink="/settings" class="dropdown-item" *ngIf="isSuperAdmin" (click)="isUserMenuOpen = false">
-                        <i class="fa-solid fa-gear item-icon"></i>
-                        <span class="item-label">Configuración</span>
-                    </div>
-                    <div (click)="logout($event); isUserMenuOpen = false" class="dropdown-item logout-item">
-                        <i class="fa-solid fa-power-off item-icon"></i>
-                        <span class="item-label">Cerrar Sesión</span>
+
+                    <!-- Vista del Menú Principal Regular -->
+                    <div *ngIf="!showNotifications">
+                        <div class="dropdown-header">
+                            <span class="user-greeting">Hola,</span>
+                            <span class="user-full-name">{{ userName }}</span>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div routerLink="/settings" class="dropdown-item" *ngIf="isSuperAdmin"
+                            (click)="isUserMenuOpen = false">
+                            <i class="fa-solid fa-gear item-icon"></i>
+                            <span class="item-label">Configuración</span>
+                        </div>
+                        <div class="dropdown-item" (click)="toggleNotifications($event)">
+                            <i class="fa-solid fa-bell item-icon"></i>
+                            <span class="item-label" style="flex: 1;">Notificaciones</span>
+                            <span *ngIf="pendingNotificationsCount > 0" class="notification-badge-count">{{
+                                pendingNotificationsCount }}</span>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div (click)="logout($event); isUserMenuOpen = false" class="dropdown-item logout-item">
+                            <i class="fa-solid fa-power-off item-icon"></i>
+                            <span class="item-label">Cerrar Sesión</span>
+                        </div>
                     </div>
                 </div>
             </div>
