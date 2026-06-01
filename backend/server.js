@@ -900,6 +900,10 @@ app.delete('/api/empleados-archivados/:id', async (req, res) => {
         const pool = await poolPlanilla;
 
         if (tabla === 'EMPLOYEES') {
+            await pool.request().input('id', mssql.Int, id).query('DELETE FROM PLANILLA_BORRADOR WHERE ID_EMPLOYEE = @id');
+            try { await pool.request().input('id', mssql.Int, id).query('DELETE FROM ATTENDANCE_DAILY_REPORTS WHERE ID_EMPLOYEE = @id'); } catch (e) { }
+            try { await pool.request().input('id', mssql.Int, id).query('DELETE FROM ATTENDANCE_EXCEPTIONS WHERE ID_EMPLOYEE = @id'); } catch (e) { }
+
             await pool.request()
                 .input('id', mssql.Int, id)
                 .query('DELETE FROM EMPLOYEES WHERE ID_EMPLOYEE = @id');
@@ -913,7 +917,8 @@ app.delete('/api/empleados-archivados/:id', async (req, res) => {
 
         res.json({ message: 'Empleado eliminado permanentemente' });
     } catch (error) {
-        res.status(500).json({ error: 'Error al eliminar empleado' });
+        console.error('Error deleting archived employee:', error);
+        res.status(500).json({ error: 'Error al eliminar empleado', details: error.message });
     }
 });
 
