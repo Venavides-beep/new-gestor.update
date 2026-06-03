@@ -167,6 +167,196 @@
     opacity: 1;
 }
 
+/* Reglas responsivas para celular */
+@media (max-width: 640px) {
+    .vacations-container {
+        padding: 1rem;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .btn-primary {
+        justify-content: center;
+        width: 100%;
+        padding: 0.75rem;
+    }
+
+    /* Cajones de estadísticas más compactos */
+    .stats-grid {
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        padding: 1rem;
+        border-radius: 12px;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .stat-label {
+        margin-bottom: 0;
+        font-weight: 600;
+    }
+
+    .stat-value {
+        font-size: 1.25rem;
+    }
+
+    /* Transformación de tabla a tarjetas */
+    .table-container {
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    .vacations-table,
+    .vacations-table thead,
+    .vacations-table tbody,
+    .vacations-table th,
+    .vacations-table td,
+    .vacations-table tr {
+        display: block;
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    .vacations-table thead {
+        display: none;
+    }
+
+    .vacations-table tbody tr {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        margin-bottom: 1rem;
+        padding: 1.25rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .vacations-table td {
+        padding: 0.4rem 0 !important;
+        border-bottom: none !important;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    /* Celda del Empleado (cabecera de la tarjeta) */
+    .vacations-table td:nth-child(1) {
+        border-bottom: 1px solid #f3f4f6 !important;
+        padding-bottom: 0.75rem !important;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+
+    /* Periodo */
+    .vacations-table td:nth-child(2) {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .vacations-table td:nth-child(2)::before {
+        content: "Periodo:";
+        font-weight: 700;
+        color: #6b7280;
+        min-width: 100px;
+    }
+
+    .period-cell {
+        font-size: 0.85rem;
+    }
+
+    /* Días Útiles */
+    .vacations-table td:nth-child(3) {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left !important;
+    }
+
+    .vacations-table td:nth-child(3)::before {
+        content: "Días Útiles:";
+        font-weight: 700;
+        color: #6b7280;
+        min-width: 100px;
+    }
+
+    /* Estado */
+    .vacations-table td:nth-child(4) {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .vacations-table td:nth-child(4)::before {
+        content: "Estado:";
+        font-weight: 700;
+        color: #6b7280;
+        min-width: 100px;
+    }
+
+    .status-container {
+        flex-direction: row !important;
+        align-items: center;
+        gap: 8px !important;
+    }
+
+    /* Observaciones */
+    .vacations-table td:nth-child(5) {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .vacations-table td:nth-child(5)::before {
+        content: "Obs:";
+        font-weight: 700;
+        color: #6b7280;
+        min-width: 100px;
+    }
+
+    .obs-text {
+        max-width: 180px;
+        text-align: right;
+    }
+
+    /* Acciones en el pie de la tarjeta */
+    .vacations-table td:nth-child(6) {
+        border-top: 1px solid #f3f4f6 !important;
+        padding-top: 0.75rem !important;
+        margin-top: 0.75rem;
+        justify-content: flex-end;
+    }
+
+    .actions-cell {
+        width: 100%;
+        justify-content: flex-end;
+        gap: 1.5rem;
+    }
+
+    .btn-icon {
+        padding: 0.5rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        filter: grayscale(0);
+        opacity: 1;
+        font-size: 1.25rem;
+    }
+}
+
 .empty-state {
     text-align: center;
     padding: 3rem;

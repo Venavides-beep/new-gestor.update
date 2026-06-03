@@ -289,8 +289,100 @@
     background-color: #fee2e2;
 }
 
-.empty-state {
-    padding: 3rem;
-    text-align: center;
-    color: #9ca3af;
+@media (max-width: 768px) {
+    .table-container {
+        background-color: transparent !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+
+    .movements-table,
+    .movements-table thead,
+    .movements-table tbody,
+    .movements-table th,
+    .movements-table td,
+    .movements-table tr {
+        display: block;
+        width: 100% !important;
+        min-width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    .movements-table thead {
+        display: none;
+    }
+
+    .movements-table tbody tr {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        margin-bottom: 1.5rem;
+        padding: 1.25rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .movements-table tbody tr:hover {
+        background-color: #ffffff;
+    }
+
+    .movements-table td {
+        padding: 0.5rem 0 !important;
+        border-bottom: none !important;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        text-align: left !important;
+        font-size: 0.85rem;
+    }
+
+    /* Empleado (Fila principal en cabecera) */
+    .movements-table td:nth-child(2) {
+        border-bottom: 2px solid #f1f5f9 !important;
+        padding-bottom: 0.75rem !important;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+
+    /* Fecha */
+    .movements-table td:nth-child(1)::before {
+        content: "Fecha:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    /* Tipo */
+    .movements-table td:nth-child(3)::before {
+        content: "Tipo:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    /* Detalle / Cuotas */
+    .movements-table td:nth-child(4)::before {
+        content: "Cuotas:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    /* Monto */
+    .movements-table td:nth-child(5)::before {
+        content: "Monto:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    /* Observación */
+    .movements-table td:nth-child(6)::before {
+        content: "Observación:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    /* Acciones */
+    .movements-table td:nth-child(7) {
+        border-top: 1px solid #f1f5f9 !important;
+        padding-top: 0.75rem !important;
+        margin-top: 0.5rem;
+        justify-content: flex-end !important;
+    }
 }

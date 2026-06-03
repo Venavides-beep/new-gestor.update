@@ -187,7 +187,6 @@
     width: 20px;
 }
 
-/* Main Content Styles */
 .main-content {
     flex-grow: 1;
     display: flex;
@@ -249,12 +248,10 @@
         z-index: 999;
     }
 
-    /* Ocultar el saludo con nombre en celular para ganar espacio */
     .user-name-label {
         display: none;
     }
 
-    /* Reducir el tamaño del título de la página en celular */
     .page-title {
         font-size: 0.8rem;
         max-width: 50%;
@@ -262,6 +259,27 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         text-align: center;
+    }
+
+    .dropdown-menu-box {
+        position: fixed !important;
+        top: calc(var(--header-height) + 5px) !important;
+        left: 10px !important;
+        right: 10px !important;
+        width: calc(100vw - 20px) !important;
+        min-width: unset !important;
+        max-width: unset !important;
+        transform: translateY(0) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .dropdown-menu-box.expanded {
+        min-width: unset !important;
+    }
+
+    .notif-container-view {
+        min-width: unset !important;
+        width: 100% !important;
     }
 }
 

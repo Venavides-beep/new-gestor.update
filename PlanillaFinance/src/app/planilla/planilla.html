@@ -32,9 +32,10 @@
                     <th colspan="5">Descuentos</th>
                     <th rowspan="2">Total<br>Desc.</th>
                     <th rowspan="2">Neto a<br>Pagar</th>
+                    <th rowspan="2">Obs.</th>
                     <th rowspan="2">Estado</th>
                     <th rowspan="2">Acción</th>
-                    <th rowspan="2">Obs.</th>
+
                 </tr>
                 <tr>
                     <th>Bonos</th>
@@ -94,7 +95,6 @@
                         </div>
                     </td>
 
-                    <!-- Faltas column separated -->
                     <td>
                         <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
                             <input type="number" class="input-cell" style="width: 50px" [(ngModel)]="emp.faltasDias"
@@ -121,6 +121,8 @@
                     </td>
                     <td class="text-right neto-cell">{{emp.remuneracionNeta | number:'1.2-2'}}</td>
 
+                    <td><input type="text" class="input-cell" style="width: 100px; text-align: left;"
+                            [(ngModel)]="emp.observaciones"></td>
                     <td>
                         <select class="status-select-table" [(ngModel)]="emp.estado" (change)="calculateEmployee(emp)"
                             [ngClass]="emp.estado.toLowerCase()">
@@ -135,8 +137,6 @@
                         </button>
                     </td>
 
-                    <td><input type="text" class="input-cell" style="width: 100px; text-align: left;"
-                            [(ngModel)]="emp.observaciones"></td>
                 </tr>
                 <tr *ngIf="employees.length === 0">
                     <td colspan="19" style="padding: 2rem; text-align: center;">No hay empleados registrados para

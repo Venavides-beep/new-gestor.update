@@ -12,8 +12,275 @@
 
     .page-header {
         flex-direction: column;
+        align-items: stretch;
+        gap: 1.25rem;
+    }
+
+    .page-header div[style*="display: flex"] {
+        flex-direction: column !important;
+        width: 100% !important;
+        align-items: stretch !important;
+        gap: 0.5rem !important;
+    }
+
+    .btn-export {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+
+    /* Transformación de tabla de planilla a tarjetas en celular */
+    .table-container {
+        background-color: transparent !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+
+    .planilla-table,
+    .planilla-table thead,
+    .planilla-table tbody,
+    .planilla-table tfoot,
+    .planilla-table th,
+    .planilla-table td,
+    .planilla-table tr {
+        display: block;
+        width: 100% !important;
+        min-width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    /* Ocultar el encabezado de doble fila */
+    .planilla-table thead {
+        display: none;
+    }
+
+    /* Ocultar el pie de página de la tabla */
+    .planilla-table tfoot {
+        display: none;
+    }
+
+    /* Cada fila es una tarjeta de pago */
+    .planilla-table tbody tr {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        margin-bottom: 1.5rem;
+        padding: 1.25rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .planilla-table tbody tr:hover {
+        background-color: #ffffff;
+    }
+
+    /* Resetear estilos de celdas */
+    .planilla-table td {
+        padding: 0.5rem 0 !important;
+        border-bottom: none !important;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        text-align: left !important;
+        font-size: 0.85rem;
+    }
+
+    /* Celda N° e Info Empleado (unidas visualmente en la cabecera de la tarjeta) */
+    .planilla-table td:nth-child(1) {
+        display: none;
+        /* Ocultamos el número de fila en celular */
+    }
+
+    .planilla-table td:nth-child(2) {
+        border-bottom: 2px solid #f1f5f9 !important;
+        padding-bottom: 0.75rem !important;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+
+    .employee-cell {
         align-items: flex-start;
-        gap: 1rem;
+    }
+
+    .employee-cell .font-medium {
+        font-size: 1.05rem;
+        color: #0f172a;
+    }
+
+    /* Ocultar cargo predeterminado para reacomodarlo */
+    .planilla-table td:nth-child(3) {
+        display: flex;
+    }
+
+    .planilla-table td:nth-child(3)::before {
+        content: "Cargo:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    /* Sueldo Base */
+    .planilla-table td:nth-child(4)::before {
+        content: "Sueldo Base:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    /* Bonos */
+    .planilla-table td:nth-child(5)::before {
+        content: "Bonos adicionales:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .planilla-table td:nth-child(5) div {
+        flex-direction: row !important;
+        gap: 8px !important;
+    }
+
+    /* Horas Extras */
+    .planilla-table td:nth-child(6)::before {
+        content: "Horas Extras:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .planilla-table td:nth-child(6) div {
+        flex-direction: row-reverse !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    .planilla-table td:nth-child(6) .input-cell {
+        width: 60px !important;
+    }
+
+    /* Monto H.E. */
+    .planilla-table td:nth-child(7)::before {
+        content: "Monto Horas Extras:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    /* Entidad Pensión */
+    .planilla-table td:nth-child(8)::before {
+        content: "Entidad Pensión:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    /* Descuento AFP */
+    .planilla-table td:nth-child(9)::before {
+        content: "Descuento Pensión:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    /* Adelanto */
+    .planilla-table td:nth-child(10)::before {
+        content: "Adelanto:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    /* Préstamo */
+    .planilla-table td:nth-child(11)::before {
+        content: "Préstamo:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    /* Faltas Días */
+    .planilla-table td:nth-child(12)::before {
+        content: "Faltas Días:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .planilla-table td:nth-child(12) div {
+        flex-direction: row-reverse !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    /* Faltas Horas */
+    .planilla-table td:nth-child(13)::before {
+        content: "Faltas Horas:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .planilla-table td:nth-child(13) div {
+        flex-direction: row-reverse !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    /* Descuentos Adicionales */
+    .planilla-table td:nth-child(14)::before {
+        content: "Desc. Adicionales:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .planilla-table td:nth-child(14) div {
+        flex-direction: row !important;
+        gap: 8px !important;
+    }
+
+    /* Total Descuento */
+    .planilla-table td:nth-child(15)::before {
+        content: "Total Descuento:";
+        font-weight: 700;
+        color: #b91c1c;
+    }
+
+    /* Neto a Pagar */
+    .planilla-table td:nth-child(16) {
+        border-top: 1px dashed #e2e8f0 !important;
+        padding-top: 0.75rem !important;
+        margin-top: 0.5rem;
+    }
+
+    .planilla-table td:nth-child(16)::before {
+        content: "NETO A PAGAR:";
+        font-weight: 800;
+        color: #059669;
+        font-size: 0.95rem;
+    }
+
+    .planilla-table td:nth-child(16) {
+        font-size: 1.15rem !important;
+    }
+
+    /* Observaciones (ahora en la posición 17) */
+    .planilla-table td:nth-child(17)::before {
+        content: "Observaciones:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .planilla-table td:nth-child(17) .input-cell {
+        width: 60% !important;
+        text-align: right !important;
+    }
+
+    /* Estado de pago (ahora en la posición 18) */
+    .planilla-table td:nth-child(18)::before {
+        content: "Estado:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    /* Acciones - Botón Detalle (ahora en la posición 19) */
+    .planilla-table td:nth-child(19) {
+        margin-top: 0.5rem;
+        justify-content: center !important;
+        border-top: 1px solid #f1f5f9 !important;
+        padding-top: 0.75rem !important;
+    }
+
+    .btn-action-detail {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 0.55rem !important;
     }
 }
 
@@ -385,17 +652,18 @@ input[type=number] {
         grid-template-columns: 1fr;
     }
 
-    .employee-info-banner, .responsive-flex-banner {
+    .employee-info-banner,
+    .responsive-flex-banner {
         flex-direction: column !important;
         gap: 1rem !important;
         align-items: flex-start !important;
     }
-    
-    .responsive-flex-banner > div {
+
+    .responsive-flex-banner>div {
         width: 100%;
         text-align: left !important;
     }
-    
+
     .responsive-grid-row {
         grid-template-columns: 1fr !important;
         gap: 0.5rem !important;
@@ -506,7 +774,45 @@ input[type=number] {
     color: #065f46;
     border: 1px solid #6ee7b7;
 }
-.switch-mini { display: flex; flex-direction: column; align-items: center; gap: 4px; } .switch-mini input[type='checkbox'] { width: 34px; height: 18px; appearance: none; background-color: rgba(0,0,0,0.3); border-radius: 10px; position: relative; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); } .switch-mini input[type='checkbox']:checked { background-color: #10b981; } .switch-mini input[type='checkbox']::before { content: ''; position: absolute; width: 14px; height: 14px; background: white; border-radius: 50%; top: 1px; left: 1px; transition: 0.2s; } .switch-mini input[type='checkbox']:checked::before { left: 17px; }
+
+.switch-mini {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.switch-mini input[type='checkbox'] {
+    width: 34px;
+    height: 18px;
+    appearance: none;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.switch-mini input[type='checkbox']:checked {
+    background-color: #10b981;
+}
+
+.switch-mini input[type='checkbox']::before {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: white;
+    border-radius: 50%;
+    top: 1px;
+    left: 1px;
+    transition: 0.2s;
+}
+
+.switch-mini input[type='checkbox']:checked::before {
+    left: 17px;
+}
+
 .suggested-badge {
     background-color: #eff6ff;
     color: #1d4ed8;

@@ -243,6 +243,49 @@
         width: 100% !important;
     }
 
+    /* Forzar cuadrícula de 2x2 para los widgets en celular */
+    .summary-widgets {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.65rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+
+    /* Convertir las tarjetas a un diseño horizontal y compacto */
+    .widget-card {
+        padding: 0.75rem 0.5rem !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 0.5rem !important;
+        border-radius: 12px !important;
+    }
+
+    .widget-icon {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 0.9rem !important;
+        border-radius: 8px !important;
+        flex-shrink: 0;
+    }
+
+    .widget-info {
+        align-items: flex-start !important;
+    }
+
+    .widget-info h3 {
+        font-size: 0.65rem !important;
+        text-align: left !important;
+        line-height: 1.1;
+    }
+
+    .widget-value {
+        font-size: 1.1rem !important;
+        font-weight: 700;
+        text-align: left !important;
+        line-height: 1;
+        margin-top: 2px;
+    }
+
     .table-container {
         background-color: transparent !important;
         box-shadow: none !important;

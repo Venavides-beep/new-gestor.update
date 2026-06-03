@@ -183,44 +183,49 @@
     font-size: 1.4rem;
 }
 
-/* Table */
+/* ── Table ── */
 .table-container {
     background-color: white;
     border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
     overflow-x: auto;
-    padding-bottom: 1rem;
+    -webkit-overflow-scrolling: touch;
 }
 
 .historial-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85rem;
     min-width: 1200px;
 }
 
 .historial-table th {
     background-color: #f9fafb;
-    color: #374151;
+    color: #6b7280;
     font-weight: 600;
     text-align: center;
-    padding: 0.75rem 0.5rem;
-    border-bottom: 2px solid #e5e7eb;
+    padding: 1rem 1.5rem;
+    font-size: 0.85rem;
     text-transform: uppercase;
-    font-size: 0.7rem;
     letter-spacing: 0.05em;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
 }
 
 .historial-table td {
-    padding: 0.6rem 0.5rem;
+    padding: 1rem 1.5rem;
     border-bottom: 1px solid #f3f4f6;
     color: #374151;
+    font-size: 0.95rem;
+    white-space: nowrap;
     text-align: center;
-    vertical-align: middle;
 }
 
-.historial-table tr:hover {
-    background-color: #f8fafc;
+.historial-table tbody tr:hover {
+    background-color: #f9fafb;
+}
+
+.historial-table tbody tr:last-child td {
+    border-bottom: none;
 }
 
 .text-right {
@@ -228,11 +233,13 @@
 }
 
 .badge {
-    padding: 0.2rem 0.6rem;
+    padding: 0.25rem 0.75rem;
     border-radius: 9999px;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 500;
+    display: inline-block;
     background-color: #f3f4f6;
+    color: #374151;
 }
 
 .type-badge {
@@ -243,7 +250,6 @@
 .neto-cell {
     font-weight: 700;
     color: #059669;
-    font-size: 0.95rem;
 }
 
 .totals-row {
@@ -252,5 +258,186 @@
 }
 
 .totals-row td {
-    padding: 1rem 0.5rem;
+    padding: 1rem 1.5rem;
+    font-weight: 700;
+    color: #374151;
+}
+
+@media (max-width: 768px) {
+    .table-container {
+        background-color: transparent !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+
+    .historial-table,
+    .historial-table thead,
+    .historial-table tbody,
+    .historial-table tfoot,
+    .historial-table th,
+    .historial-table td,
+    .historial-table tr {
+        display: block;
+        width: 100% !important;
+        min-width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    .historial-table thead {
+        display: none;
+    }
+
+    .historial-table tfoot {
+        display: none;
+    }
+
+    .historial-table tbody tr {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        margin-bottom: 1.5rem;
+        padding: 1.25rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .historial-table tbody tr:hover {
+        background-color: #ffffff;
+    }
+
+    .historial-table td {
+        padding: 0.5rem 0 !important;
+        border-bottom: none !important;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        text-align: left !important;
+        font-size: 0.85rem;
+    }
+
+    .historial-table td:nth-child(1) {
+        display: none;
+    }
+
+    .historial-table td:nth-child(2) {
+        border-bottom: 2px solid #f1f5f9 !important;
+        padding-bottom: 0.75rem !important;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+
+    .employee-cell {
+        align-items: flex-start;
+    }
+
+    .employee-cell .font-medium {
+        font-size: 1.05rem;
+        color: #0f172a;
+    }
+
+    .historial-table td:nth-child(3)::before {
+        content: "Cargo:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .historial-table td:nth-child(4)::before {
+        content: "Sueldo Base:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .historial-table td:nth-child(5)::before {
+        content: "Bonos:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .historial-table td:nth-child(6)::before {
+        content: "Horas Extras:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .historial-table td:nth-child(7)::before {
+        content: "Monto Horas Extras:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .historial-table td:nth-child(8)::before {
+        content: "Entidad Pensión:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .historial-table td:nth-child(9)::before {
+        content: "Descuento Pensión:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .historial-table td:nth-child(10)::before {
+        content: "Adelanto:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .historial-table td:nth-child(11)::before {
+        content: "Préstamo:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .historial-table td:nth-child(12)::before {
+        content: "Faltas Días:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .historial-table td:nth-child(13)::before {
+        content: "Faltas Horas:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .historial-table td:nth-child(14)::before {
+        content: "Desc. Adicionales:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .historial-table td:nth-child(15)::before {
+        content: "Total Descuento:";
+        font-weight: 700;
+        color: #b91c1c;
+    }
+
+    .historial-table td:nth-child(16) {
+        border-top: 1px dashed #e2e8f0 !important;
+        padding-top: 0.75rem !important;
+        margin-top: 0.5rem;
+    }
+
+    .historial-table td:nth-child(16)::before {
+        content: "NETO A PAGAR:";
+        font-weight: 800;
+        color: #059669;
+        font-size: 0.95rem;
+    }
+
+    .historial-table td:nth-child(16) {
+        font-size: 1.15rem !important;
+    }
+
+    .historial-table td:nth-child(17)::before {
+        content: "Estado:";
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .historial-table td:nth-child(18)::before {
+        content: "Observaciones:";
+        font-weight: 700;
+        color: #64748b;
+    }
 }
