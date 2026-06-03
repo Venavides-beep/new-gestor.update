@@ -26,7 +26,7 @@
     opacity: 0.7;
 }
 
-.header-titles {
+s .header-titles {
     text-align: center;
 }
 
@@ -232,23 +232,23 @@
     .attendance-header {
         align-items: stretch;
     }
-    
+
     .header-titles h1 {
         font-size: 1.6rem;
     }
-    
-    .header-actions, .search-box, .search-box input {
+
+    .header-actions,
+    .search-box,
+    .search-box input {
         width: 100% !important;
     }
 
-    /* Forzar cuadrícula de 2x2 para los widgets en celular */
     .summary-widgets {
         grid-template-columns: repeat(2, 1fr) !important;
         gap: 0.65rem !important;
         margin-bottom: 1.5rem !important;
     }
 
-    /* Convertir las tarjetas a un diseño horizontal y compacto */
     .widget-card {
         padding: 0.75rem 0.5rem !important;
         flex-direction: row !important;
@@ -290,11 +290,11 @@
         padding: 0;
     }
 
-    .attendance-table, 
-    .attendance-table thead, 
-    .attendance-table tbody, 
-    .attendance-table th, 
-    .attendance-table td, 
+    .attendance-table,
+    .attendance-table thead,
+    .attendance-table tbody,
+    .attendance-table th,
+    .attendance-table td,
     .attendance-table tr {
         display: block;
         width: 100% !important;
@@ -323,7 +323,6 @@
         width: 100% !important;
     }
 
-    /* Fila del empleado (cabecera) */
     .attendance-row td:nth-child(1) {
         border-bottom: 1px solid #f1f5f9 !important;
         padding-bottom: 0.75rem !important;
@@ -331,17 +330,15 @@
         display: block;
     }
 
-    /* Contenedor de horas de Entrada/Salida */
     .attendance-row td:nth-child(2) {
         margin-bottom: 0.5rem;
         display: block;
     }
-    
+
     .clock-times-wrapper {
         justify-content: space-between;
     }
 
-    /* Horas Totales */
     .attendance-row td:nth-child(3) {
         display: flex;
         flex-direction: row;
@@ -367,10 +364,9 @@
     }
 
     .progress-bar-bg {
-        display: none; /* Ocultar barra de progreso en móvil para ahorrar espacio vertical */
+        display: none;
     }
 
-    /* Estado de Asistencia */
     .attendance-row td:nth-child(4) {
         display: flex;
         justify-content: space-between;
@@ -385,14 +381,13 @@
         font-size: 0.85rem;
     }
 
-    /* Acciones en el pie de la tarjeta */
     .attendance-row td:nth-child(5) {
         border-top: 1px solid #f1f5f9 !important;
         padding-top: 0.75rem !important;
         margin-top: 0.5rem;
         justify-content: center;
     }
-    
+
     .actions-wrapper {
         width: 100%;
         justify-content: space-around;
@@ -771,7 +766,6 @@
     color: #2563eb !important;
 }
 
-/* Estilos de Botones de Modal Justificación */
 .btn-submit {
     background: #10b981;
     color: white;
@@ -831,7 +825,6 @@
     font-weight: 600;
 }
 
-/* Filas de falta dentro del modal historial (no aplicar opacidad) */
 .nested-table tr.row-absent td {
     background-color: #fef2f2;
     opacity: 1;
@@ -843,7 +836,6 @@
     opacity: 0.7;
 }
 
-/* Celda de observación en el modal */
 .observation-cell {
     min-width: 160px;
     max-width: 220px;

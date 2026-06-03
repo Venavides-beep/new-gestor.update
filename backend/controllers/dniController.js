@@ -10,7 +10,7 @@ async function consultarApiPeruDev(dni) {
             try {
                 token = fs.readFileSync('/run/secrets/APIPERUDEV_TOKEN', 'utf8').trim();
             } catch (err) {
-                token = 'sruLwUtgJNTCnHhIWcZOVoBfqERINuiT1pNCsINdWSoYJ4bNsHkjE4joclXj';
+                token = '16792|R9j3COM2UOL3N1f2MR7SnmnZpbTkNNTVquNF9yvY68ef5739';
             }
         }
         const url = 'https://apiperu.dev/api/dni';
