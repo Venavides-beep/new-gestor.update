@@ -104,6 +104,19 @@
     margin-bottom: 2.5rem;
 }
 
+@media (max-width: 1024px) {
+    .summary-widgets {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .summary-widgets {
+        grid-template-columns: 1fr;
+    }
+}
+
 .widget-card {
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(10px);
@@ -181,6 +194,7 @@
     padding: 1.5rem 1.5rem 0;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .attendance-table {
@@ -214,6 +228,142 @@
     opacity: 0.45;
     background-color: #fafafa;
     filter: grayscale(40%);
+}
+
+@media (max-width: 640px) {
+    .attendance-header {
+        align-items: stretch;
+    }
+    
+    .header-titles h1 {
+        font-size: 1.6rem;
+    }
+    
+    .header-actions, .search-box, .search-box input {
+        width: 100% !important;
+    }
+
+    .table-container {
+        background-color: transparent !important;
+        box-shadow: none !important;
+        padding: 0;
+    }
+
+    .attendance-table, 
+    .attendance-table thead, 
+    .attendance-table tbody, 
+    .attendance-table th, 
+    .attendance-table td, 
+    .attendance-table tr {
+        display: block;
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    .attendance-table thead {
+        display: none;
+    }
+
+    .attendance-row {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        margin-bottom: 1rem;
+        padding: 1.25rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .attendance-row td {
+        padding: 0.4rem 0 !important;
+        border: none !important;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100% !important;
+    }
+
+    /* Fila del empleado (cabecera) */
+    .attendance-row td:nth-child(1) {
+        border-bottom: 1px solid #f1f5f9 !important;
+        padding-bottom: 0.75rem !important;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+
+    /* Contenedor de horas de Entrada/Salida */
+    .attendance-row td:nth-child(2) {
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .clock-times-wrapper {
+        justify-content: space-between;
+    }
+
+    /* Horas Totales */
+    .attendance-row td:nth-child(3) {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .attendance-row td:nth-child(3)::before {
+        content: "Horas Laboradas:";
+        font-weight: 700;
+        color: #64748b;
+        font-size: 0.85rem;
+    }
+
+    .total-hours-cell {
+        width: 100% !important;
+    }
+
+    .hours-info {
+        flex-direction: row-reverse;
+        gap: 0.5rem;
+    }
+
+    .progress-bar-bg {
+        display: none; /* Ocultar barra de progreso en móvil para ahorrar espacio vertical */
+    }
+
+    /* Estado de Asistencia */
+    .attendance-row td:nth-child(4) {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+
+    .attendance-row td:nth-child(4)::before {
+        content: "Estado:";
+        font-weight: 700;
+        color: #64748b;
+        font-size: 0.85rem;
+    }
+
+    /* Acciones en el pie de la tarjeta */
+    .attendance-row td:nth-child(5) {
+        border-top: 1px solid #f1f5f9 !important;
+        padding-top: 0.75rem !important;
+        margin-top: 0.5rem;
+        justify-content: center;
+    }
+    
+    .actions-wrapper {
+        width: 100%;
+        justify-content: space-around;
+    }
+
+    .action-btn {
+        flex: 1;
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 0.5rem 0;
+        height: auto;
+    }
 }
 
 .emp-profile-cell {

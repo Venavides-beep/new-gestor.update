@@ -90,6 +90,7 @@
     border-radius: 12px;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Desplazamiento táctil suave */
 }
 
 .employees-table {
@@ -117,8 +118,112 @@
     font-size: 0.95rem;
 }
 
-.employees-table tr:last-child td {
-    border-bottom: none;
+@media (max-width: 768px) {
+    .employees-table th, 
+    .employees-table td {
+        padding: 0.75rem 1rem;
+    }
+}
+
+/* Transformar la tabla en tarjetas en pantallas de celular */
+@media (max-width: 640px) {
+    .table-container {
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
+
+    .employees-table, 
+    .employees-table thead, 
+    .employees-table tbody, 
+    .employees-table th, 
+    .employees-table td, 
+    .employees-table tr {
+        display: block;
+        width: 100% !important;
+        min-width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    /* Ocultar el encabezado de la tabla */
+    .employees-table thead {
+        display: none;
+    }
+
+    /* Cada fila es una tarjeta individual */
+    .employees-table tbody tr {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        margin-bottom: 1.25rem;
+        padding: 1.25rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        transition: transform 0.2s ease;
+    }
+
+    .employees-table tbody tr:hover {
+        background-color: #ffffff;
+    }
+
+    /* Quitar bordes de celda internos predeterminados */
+    .employees-table td {
+        padding: 0.4rem 0 !important;
+        border-bottom: none !important;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    /* Celda del nombre (Cabecera de la tarjeta) */
+    .employees-table td:nth-child(1) {
+        border-bottom: 1px solid #f3f4f6 !important;
+        padding-bottom: 0.75rem !important;
+        margin-bottom: 0.75rem;
+        display: block; /* Mantener la alineación del avatar y email */
+    }
+
+    /* Insertar etiquetas automáticas para identificar los campos en celular */
+    .employees-table td:nth-child(2)::before {
+        content: "Cargo:";
+        font-weight: 700;
+        color: #6b7280;
+        min-width: 110px;
+    }
+
+    .employees-table td:nth-child(3)::before {
+        content: "Área/Depto:";
+        font-weight: 700;
+        color: #6b7280;
+        min-width: 110px;
+    }
+
+    .employees-table td:nth-child(4)::before {
+        content: "Estado:";
+        font-weight: 700;
+        color: #6b7280;
+        min-width: 110px;
+    }
+
+    /* Celda de Acciones (Pie de la tarjeta) */
+    .employees-table td:nth-child(5) {
+        border-top: 1px solid #f3f4f6 !important;
+        padding-top: 0.75rem !important;
+        margin-top: 0.75rem;
+        justify-content: flex-end;
+    }
+
+    .actions {
+        width: 100%;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .btn-action {
+        flex: 1;
+        text-align: center;
+        margin-right: 0;
+        padding: 0.5rem;
+    }
 }
 
 .user-info {

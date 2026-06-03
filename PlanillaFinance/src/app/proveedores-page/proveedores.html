@@ -3,6 +3,7 @@
 <div style="width: 90%; margin: 0 auto 15px auto; text-align: right;">
     <a href="javascript:void(0)" class="enlace-registro" (click)="abrirModal()">+ Registrar Proveedor</a>
 </div>
+<div class="table-container">
 <table class="table-form-proveedores">
     <thead>
         <tr>
@@ -49,6 +50,7 @@
         </tr>
     </tbody>
 </table>
+</div>
 
 <div class="modal-overlay" *ngIf="showModal">
     <div class="modal-content" (click)="$event.stopPropagation()">

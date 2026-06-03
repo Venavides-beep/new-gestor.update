@@ -31,15 +31,20 @@ hr {
     display: block;
 }
 
-.table-form-proveedores {
+.table-container {
     width: 90%;
     margin: 0 auto;
+    overflow-x: auto;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    -webkit-overflow-scrolling: touch; /* Desplazamiento suave en iOS */
+}
+
+.table-form-proveedores {
+    width: 100%;
     border-collapse: collapse;
     font-family: var(--fuente-principal);
     font-size: 14px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-    border-radius: 10px;
-    overflow: hidden;
 }
 
 .table-form-proveedores thead tr {

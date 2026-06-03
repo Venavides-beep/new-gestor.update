@@ -248,6 +248,21 @@
         background: rgba(15, 23, 42, 0.3);
         z-index: 999;
     }
+
+    /* Ocultar el saludo con nombre en celular para ganar espacio */
+    .user-name-label {
+        display: none;
+    }
+
+    /* Reducir el tamaño del título de la página en celular */
+    .page-title {
+        font-size: 0.8rem;
+        max-width: 50%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: center;
+    }
 }
 
 .page-title {
