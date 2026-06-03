@@ -225,9 +225,7 @@
 }
 
 .attendance-row.row-absent td {
-    opacity: 0.45;
-    background-color: #fafafa;
-    filter: grayscale(40%);
+    background-color: #fffafb;
 }
 
 @media (max-width: 640px) {

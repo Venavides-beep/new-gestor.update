@@ -263,38 +263,29 @@ export class AttendanceComponent implements OnInit {
                 return record;
             });
 
-            // Crear mapa de registros existentes por fecha (YYYY-MM-DD)
-            // IMPORTANTE: Extraer fecha del string ISO directamente, NO usar new Date()
-            // porque "2026-05-11T00:00:00.000Z" en UTC-5 se convierte en Mayo 10 (un día antes)
             const existingMap = new Map<string, any>();
             monthRecords.forEach((r: any) => {
                 const key = typeof r.date === 'string' ? r.date.split('T')[0] : new Date(r.date).toISOString().split('T')[0];
                 existingMap.set(key, r);
             });
 
-            // Generar solo días LABORALES (Lunes a Viernes) del mes hasta hoy
             const allDays: any[] = [];
             for (let day = 1; day <= todayDate; day++) {
                 const dateObj = new Date(currentYear, currentMonth, day);
-                const dayOfWeek = dateObj.getDay(); // 0 = Domingo, 6 = Sábado
+                const dayOfWeek = dateObj.getDay();
 
-                // Saltar sábados y domingos completamente
                 if (dayOfWeek === 0 || dayOfWeek === 6) continue;
 
                 const key = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                // Fecha UTC para que Angular date pipe con 'UTC' la muestre correcta
                 const utcDate = `${key}T00:00:00.000Z`;
 
                 if (existingMap.has(key)) {
-                    // Día con registro existente en BD
                     const recordFromDb = existingMap.get(key);
-                    // Si no hay hora de entrada, siempre debe mostrarse como Falta (aunque tenga observación)
                     if (!recordFromDb.clockIn || recordFromDb.clockIn === '-- : --') {
                         recordFromDb.status = 'Falta';
                     }
                     allDays.push(recordFromDb);
                 } else if (day === todayDate) {
-                    // HOY: usar datos en vivo del empleado si tiene entrada
                     allDays.push({
                         date: utcDate,
                         clockIn: emp.clockIn || '-- : --',
@@ -305,7 +296,6 @@ export class AttendanceComponent implements OnInit {
                         isMissingRecord: emp.status === 'Falta'
                     });
                 } else {
-                    // Día laboral sin registro = Falta
                     allDays.push({
                         date: utcDate,
                         clockIn: '-- : --',
@@ -318,7 +308,6 @@ export class AttendanceComponent implements OnInit {
                 }
             }
 
-            // Ordenar de más reciente a más antiguo
             allDays.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
             this.selectedEmployeeHistory = allDays;
@@ -327,7 +316,6 @@ export class AttendanceComponent implements OnInit {
         }
     }
 
-    // Abrir edición de observación inline para una falta
     startEditObservation(record: any) {
         this.editingObservationRecord = record;
         this.inlineObservationText = record.observations || '';
