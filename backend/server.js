@@ -2583,6 +2583,112 @@ app.put('/api/finance/proveedores/:id', async (req, res) => {
     }
 });
 
+// ==================== DOMINIOS WHMCS ====================
+app.get('/api/whmcs/domains', async (req, res) => {
+    try {
+        const allDomains = [];
+        let offset = 0;
+        const limit = 250;
+        let hasMore = true;
+        let attempts = 0;
+        const maxAttempts = 20; // seguridad: máximo 5000 dominios
+
+        while (hasMore && attempts < maxAttempts) {
+            attempts++;
+            const params = new URLSearchParams();
+            params.append('identifier', WHMCS_IDENTIFIER);
+            params.append('secret', WHMCS_SECRET);
+            params.append('action', 'GetClientsDomains');
+            params.append('limitstart', offset.toString());
+            params.append('limitnum', limit.toString());
+            params.append('responsetype', 'json');
+
+            const response = await axios.post(WHMCS_API_URL, params, {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                timeout: 15000
+            });
+
+            if (response.data && response.data.result === 'success') {
+                const domainsRaw = response.data.domains?.domain || [];
+                const domains = Array.isArray(domainsRaw) ? domainsRaw : [domainsRaw];
+                if (domains.length === 0 || !domains[0].id) {
+                    hasMore = false;
+                } else {
+                    allDomains.push(...domains);
+                    offset += limit;
+                    if (domains.length < limit) hasMore = false;
+                }
+            } else {
+                hasMore = false;
+            }
+        }
+
+        // Obtener nombres de clientes (cache para no repetir)
+        const clientCache = {};
+        for (const d of allDomains) {
+            if (d.clientid && !clientCache[d.clientid]) {
+                try {
+                    const clientRes = await getWhmcsClientDetails(d.clientid);
+                    if (clientRes && clientRes.result === 'success') {
+                        const fn = (clientRes.firstname || '').trim();
+                        const ln = (clientRes.lastname || '').trim();
+                        const co = (clientRes.companyname || '').trim();
+                        clientCache[d.clientid] = co || `${fn} ${ln}`.trim() || `Cliente #${d.clientid}`;
+                    } else {
+                        clientCache[d.clientid] = `Cliente #${d.clientid}`;
+                    }
+                } catch {
+                    clientCache[d.clientid] = `Cliente #${d.clientid}`;
+                }
+            }
+        }
+
+        // Calcular días hasta vencimiento
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const domainList = allDomains.map(d => {
+            const expiryStr = d.expirydate || d.nextduedate || '';
+            let diasRestantes = null;
+            if (expiryStr) {
+                const expDate = new Date(expiryStr);
+                expDate.setHours(0, 0, 0, 0);
+                diasRestantes = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+            }
+
+            return {
+                id: d.id,
+                dominio: d.domainname,
+                fechaRegistro: d.regdate || '',
+                fechaVencimiento: expiryStr,
+                nextDueDate: d.nextduedate || '',
+                estado: d.status || 'Unknown',
+                registrar: d.registrar || '',
+                montoRecurrente: parseFloat(d.recurringamount) || 0,
+                montoPrimerPago: parseFloat(d.firstpaymentamount) || 0,
+                clienteId: d.clientid,
+                clienteNombre: clientCache[d.clientid] || '',
+                diasRestantes
+            };
+        });
+
+        // Ordenar por fecha de vencimiento (más próximos primero)
+        domainList.sort((a, b) => {
+            if (!a.fechaVencimiento) return 1;
+            if (!b.fechaVencimiento) return -1;
+            return new Date(a.fechaVencimiento) - new Date(b.fechaVencimiento);
+        });
+
+        res.json({
+            total: domainList.length,
+            dominios: domainList
+        });
+    } catch (error) {
+        console.error('Error al obtener dominios de WHMCS:', error.message);
+        res.status(500).json({ error: 'Error al obtener dominios de WHMCS', details: error.message });
+    }
+});
+
 
 app.get('/api/finance/egresos', async (req, res) => {
     try {
