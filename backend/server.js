@@ -3164,6 +3164,18 @@ function pushUserToDevice(biometricId, nombre, apellidos, password) {
     const fullName = `${nombre || ''} ${apellidos || ''}`.trim().substring(0, 24); // ZKTeco max 24 chars
     const pin = (password || '').toString().trim();
     const cmd = `DATA UPDATE USERINFO PIN=${biometricId}\tName=${fullName}\tPrivilege=0\tPassword=${pin}\tEnabled=1\tCardNo=0\tGroup=1\tTimeZone=0\tVerify=0`;
+
+    const cacheUser = biometricUsersCache.get(biometricId.toString()) || { privilege: 0, card: null };
+    cacheUser.name = fullName;
+    cacheUser.password = pin || null;
+    biometricUsersCache.set(biometricId.toString(), cacheUser);
+
+    syncBiometricUserToDB(biometricId, fullName, {
+        password: pin || null,
+        privilege: cacheUser.privilege,
+        card: cacheUser.card
+    }).catch(err => console.error('[ZKTeco] Error al actualizar la base de datos local:', err));
+
     let pushed = 0;
     if (knownDeviceSNs.size === 0) {
         console.log(`[ZKTeco] ⚠️ No hay dispositivos conectados. El usuario PIN=${biometricId} se encolará globalmente.`);
