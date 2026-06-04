@@ -53,6 +53,47 @@ hr {
     -webkit-overflow-scrolling: touch; /* Desplazamiento suave en iOS */
 }
 
+/* Mobile responsive table → cards (similar to employees) */
+@media (max-width: 640px) {
+  .table-container {
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+  .table-form-proveedores, .table-form-proveedores thead, .table-form-proveedores tbody,
+  .table-form-proveedores th, .table-form-proveedores td, .table-form-proveedores tr {
+    display: block;
+    width: 100% !important;
+    min-width: 100% !important;
+    box-sizing: border-box;
+  }
+  .table-form-proveedores thead { display: none; }
+  .table-form-proveedores tbody tr {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    margin-bottom: 1.25rem;
+    padding: 1.25rem;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+    transition: transform 0.2s ease;
+  }
+  .table-form-proveedores tbody tr:hover { background-color: #ffffff; }
+  .table-form-proveedores td {
+    padding: 0.4rem 0 !important;
+    border-bottom: none !important;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+  .table-form-proveedores td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    min-width: 110px;
+    color: #6b7280;
+    margin-right: 0.5rem;
+  }
+}
+
 .table-form-proveedores {
     width: 100%;
     border-collapse: collapse;
@@ -61,8 +102,15 @@ hr {
 }
 
 .table-form-proveedores thead tr {
-    background-color: var(--color-secundario);
-    color: black;
+    background-color: #f9fafb;
+    color: #6b7280;
+    font-weight: 600;
+    text-align: left;
+    padding: 1rem 1.5rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .table-form-proveedores th {
@@ -71,16 +119,14 @@ hr {
     font-weight: 600;
     font-size: 13px;
     letter-spacing: 0.4px;
-
-
-
     white-space: nowrap;
 }
 
 .table-form-proveedores td {
     padding: 12px 16px;
+    background-color: white;
     color: #444;
-    border-bottom: 1px solid black;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .table-form-proveedores tbody tr:last-child td {
@@ -90,10 +136,6 @@ hr {
 .table-form-proveedores tbody tr:hover {
     background-color: white;
     transition: background-color 0.2s ease;
-}
-
-.table-form-proveedores tbody tr:nth-child(even) {
-    background-color: black;
 }
 
 /* Modal Styles */

@@ -24,17 +24,17 @@
                 [id]="'prov-row-' + p.id"
                 [class.row-highlighted]="highlightedId === p.id"
                 style="color: black;">
-                <td style="color: black; font-weight: bold;">{{ p.codigoProveedor || '-' }}</td>
-                <td style="color: black;">{{ p.ruc || p.url || '-' }}</td>
-                <td style="color: black;">{{ p.razonSocial }}</td>
-                <td style="color: black;">{{ p.tipoProveedor }}</td>
-                <td style="color: black;">{{ p.fechaPago }}</td>
-                <td>
+                <td data-label="Código de Proveedor" style="color: black; font-weight: bold;">{{ p.codigoProveedor || '-' }}</td>
+                <td data-label="RUC / Sitio Web" style="color: black;">{{ p.ruc || p.url || '-' }}</td>
+                <td data-label="Razón Social" style="color: black;">{{ p.razonSocial }}</td>
+                <td data-label="Tipo de Proveedor" style="color: black;">{{ p.tipoProveedor }}</td>
+                <td data-label="Fecha de Pago" style="color: black;">{{ p.fechaPago }}</td>
+                <td data-label="Estado">
                     <span [ngStyle]="{'color': p.estado === 'PENDIENTE' ? '#dc2626' : '#16a34a', 'font-weight': '600'}">
                         {{ p.estado }}
                     </span>
                 </td>
-                <td>
+                <td data-label="Acciones">
                     <button class="btn-action-icon" title="Editar" (click)="editarProveedor(p)">
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2"
                             fill="none" stroke-linecap="round" stroke-linejoin="round">
