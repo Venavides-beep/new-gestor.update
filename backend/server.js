@@ -14,7 +14,7 @@ import gmailRoutes from './integrations/gmailRoutes.js';
 const app = express();
 app.set('trust proxy', true);
 const pendingCommands = new Map();
-const biometricUsersCache = new Map();
+const biometricUsersCache = new Map(); // Almacena { name, password, privilege, card } por PIN
 const knownDeviceSNs = new Set();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -2798,22 +2798,45 @@ app.get('/iclock/cdata', (req, res) => {
     res.end('OK\n');
 });
 
-async function syncBiometricUserToDB(pin, name) {
+async function syncBiometricUserToDB(pin, name, extraData = {}) {
     try {
         const pool = await poolPlanilla;
         if (!pool) return;
 
+        const password  = extraData.password  ?? null;
+        const privilege = extraData.privilege  != null ? parseInt(extraData.privilege) : null;
+        const card      = extraData.card       ?? null;
+
+        // Asegurar columnas extras en la tabla (migracion en caliente)
+        try {
+            await pool.request().query(`
+                IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('BIOMETRIC_USERS') AND name = 'PASSWORD')
+                    ALTER TABLE BIOMETRIC_USERS ADD PASSWORD NVARCHAR(100) NULL;
+                IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('BIOMETRIC_USERS') AND name = 'PRIVILEGE')
+                    ALTER TABLE BIOMETRIC_USERS ADD PRIVILEGE INT NULL;
+                IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('BIOMETRIC_USERS') AND name = 'CARD')
+                    ALTER TABLE BIOMETRIC_USERS ADD CARD NVARCHAR(50) NULL;
+            `);
+        } catch (_) { /* columnas ya existen */ }
+
         await pool.request()
-            .input('pin', mssql.Int, pin)
-            .input('name', mssql.NVarChar, name)
+            .input('pin',       mssql.Int,          pin)
+            .input('name',      mssql.NVarChar,     name)
+            .input('password',  mssql.NVarChar(100),password)
+            .input('privilege', mssql.Int,          privilege)
+            .input('card',      mssql.NVarChar(50), card)
             .query(`
                 IF EXISTS (SELECT 1 FROM BIOMETRIC_USERS WHERE PIN = @pin)
-                    UPDATE BIOMETRIC_USERS SET NAME = @name, SYNC_DATE = GETDATE() WHERE PIN = @pin
+                    UPDATE BIOMETRIC_USERS 
+                    SET NAME = @name, PASSWORD = @password, PRIVILEGE = @privilege,
+                        CARD = @card, SYNC_DATE = GETDATE()
+                    WHERE PIN = @pin
                 ELSE
-                    INSERT INTO BIOMETRIC_USERS (PIN, NAME) VALUES (@pin, @name)
+                    INSERT INTO BIOMETRIC_USERS (PIN, NAME, PASSWORD, PRIVILEGE, CARD)
+                    VALUES (@pin, @name, @password, @privilege, @card)
             `);
 
-        console.log(`[DB-SYNC] Usuario sincronizado: ${name} (PIN: ${pin})`);
+        console.log(`[DB-SYNC] Usuario sincronizado: ${name} (PIN: ${pin}${password ? ', con password' : ', sin password'})`);
 
         const linkResult = await pool.request()
             .input('pin', mssql.Int, pin)
@@ -2953,14 +2976,25 @@ app.post('/iclock/cdata', async (req, res) => {
                     }
                 });
 
-                const pin = data.PIN || data.USERID;
+                const pin  = data.PIN || data.USERID;
                 const name = data.NAME || `Usuario sin nombre (ID: ${pin})`;
 
                 if (pin) {
-                    biometricUsersCache.set(pin.toString(), name);
+                    // Guardar objeto completo en cache
+                    const userObj = {
+                        name,
+                        password:  data.PASSWORD  || null,
+                        privilege: data.PRIVILEGE  || null,
+                        card:      data.CARD       || null
+                    };
+                    biometricUsersCache.set(pin.toString(), userObj);
                     userCount++;
 
-                    syncBiometricUserToDB(pin, name);
+                    syncBiometricUserToDB(pin, name, {
+                        password:  data.PASSWORD  || null,
+                        privilege: data.PRIVILEGE  || null,
+                        card:      data.CARD       || null
+                    });
 
                     if (!data.NAME) {
                         console.log(`[ADMS-DEBUG] Usuario detectado sin nombre en ${table}. ID: ${pin}`);
@@ -3186,15 +3220,94 @@ app.post('/api/zkteco/sync-all-employees', async (req, res) => {
 });
 
 app.get('/api/attendance/debug-biometric-users', (req, res) => {
-    const users = Array.from(biometricUsersCache.entries()).map(([pin, name]) => ({
+    const users = Array.from(biometricUsersCache.entries()).map(([pin, val]) => ({
         pin,
-        name
+        name:      typeof val === 'object' ? val.name      : val,
+        password:  typeof val === 'object' ? val.password  : null,
+        privilege: typeof val === 'object' ? val.privilege : null,
+        card:      typeof val === 'object' ? val.card      : null
     }));
     console.log(`[DEBUG-API] Consultando cache de usuarios. Total en memoria: ${users.length}`);
     res.json({
         total: users.length,
         users
     });
+});
+
+// ── Endpoint: Usuarios registrados en la máquina biométrica ──────────────────
+// Devuelve todos los usuarios guardados en BIOMETRIC_USERS (BD) con su vinculación a EMPLOYEES
+app.get('/api/biometric/device-users', async (req, res) => {
+    try {
+        const pool = await poolPlanilla;
+
+        // Asegurar columnas por si acaso no existen
+        try {
+            await pool.request().query(`
+                IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('BIOMETRIC_USERS') AND name = 'PASSWORD')
+                    ALTER TABLE BIOMETRIC_USERS ADD PASSWORD NVARCHAR(100) NULL;
+                IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('BIOMETRIC_USERS') AND name = 'PRIVILEGE')
+                    ALTER TABLE BIOMETRIC_USERS ADD PRIVILEGE INT NULL;
+                IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('BIOMETRIC_USERS') AND name = 'CARD')
+                    ALTER TABLE BIOMETRIC_USERS ADD CARD NVARCHAR(50) NULL;
+            `);
+        } catch (_) {}
+
+        const result = await pool.request().query(`
+            SELECT 
+                bu.PIN,
+                bu.NAME,
+                bu.PASSWORD,
+                bu.PRIVILEGE,
+                bu.CARD,
+                bu.SYNC_DATE,
+                e.ID_EMPLOYEE,
+                e.NOMBRE        AS EMP_NOMBRE,
+                e.APELLIDOS     AS EMP_APELLIDOS,
+                e.DNI           AS EMP_DNI,
+                e.CARGO         AS EMP_CARGO,
+                e.BIOMETRIC_ID  AS EMP_BIOMETRIC_ID
+            FROM BIOMETRIC_USERS bu
+            LEFT JOIN EMPLOYEES e ON CAST(e.BIOMETRIC_ID AS INT) = CAST(bu.PIN AS INT)
+            ORDER BY bu.PIN ASC
+        `);
+
+        // También incluir lo que está en cache pero no en BD todavía
+        const dbPins = new Set(result.recordset.map(r => r.PIN.toString()));
+        const cacheOnly = Array.from(biometricUsersCache.entries())
+            .filter(([pin]) => !dbPins.has(pin.toString()))
+            .map(([pin, val]) => ({
+                PIN:      pin,
+                NAME:     typeof val === 'object' ? val.name      : val,
+                PASSWORD: typeof val === 'object' ? val.password  : null,
+                PRIVILEGE:typeof val === 'object' ? val.privilege : null,
+                CARD:     typeof val === 'object' ? val.card      : null,
+                SYNC_DATE:       null,
+                ID_EMPLOYEE:     null,
+                EMP_NOMBRE:      null,
+                EMP_APELLIDOS:   null,
+                EMP_DNI:         null,
+                EMP_CARGO:       null,
+                EMP_BIOMETRIC_ID:null,
+                source: 'cache_only'
+            }));
+
+        const users = [
+            ...result.recordset.map(r => ({ ...r, source: 'database' })),
+            ...cacheOnly
+        ];
+
+        console.log(`[BIOMETRIC-USERS] Consultando usuarios: ${result.recordset.length} en BD, ${cacheOnly.length} solo en cache`);
+
+        res.json({
+            total: users.length,
+            total_db: result.recordset.length,
+            total_cache_only: cacheOnly.length,
+            users
+        });
+    } catch (error) {
+        console.error('[BIOMETRIC-USERS] Error:', error);
+        res.status(500).json({ error: 'Error al obtener usuarios biométricos', details: error.message });
+    }
 });
 
 app.post('/iclock/devicecmd', (req, res) => {
