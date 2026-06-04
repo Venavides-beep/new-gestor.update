@@ -196,10 +196,8 @@
     </div>
 </div>
 
-<!-- ============ Modal Dominios WHMCS ============ -->
-<div class="dominios-modal-overlay" *ngIf="showDominiosModal" (click)="cerrarDominiosModal()">
+<div class="dominios-modal-overlay" *ngIf="showDominiosModal">
     <div class="dominios-modal-content" (click)="$event.stopPropagation()">
-        <!-- Header -->
         <div class="dominios-modal-header">
             <div class="dominios-header-left">
                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="#0056b3" stroke-width="2" fill="none"
@@ -280,9 +278,12 @@
                                     d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
                                 </path>
                             </svg>
-                            {{ d.dominio }}
+                            <a [href]="'https://cliente.hwperu.com/admin/clientsdomains.php?userid=' + d.clienteId + '&domainid=' + d.id"
+                                target="_blank" class="dominio-link">
+                                {{ d.dominio }}
+                            </a>
                         </td>
-                        <td data-label="Cliente">{{ d.clienteNombre }}</td>
+                        <td data-label="Cliente">{{ d.clienteNombre || '-' }}</td>
                         <td data-label="Vencimiento">{{ d.fechaVencimiento }}</td>
                         <td data-label="Días" class="dias-cell">
                             <span class="dias-badge" [class]="getEstadoClass(d)">
