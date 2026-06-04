@@ -986,7 +986,7 @@ app.post('/api/empleados', async (req, res) => {
 
         // Sincronizar automáticamente con la máquina biométrica si el usuario marcó la casilla
         if (data.syncToBiometric && saved.BIOMETRIC_ID) {
-            pushUserToDevice(saved.BIOMETRIC_ID, saved.NOMBRE, saved.APELLIDOS);
+            pushUserToDevice(saved.BIOMETRIC_ID, saved.NOMBRE, saved.APELLIDOS, data.biometricPassword);
         }
 
         res.status(201).json({
@@ -1052,7 +1052,7 @@ app.put('/api/empleados/:id', async (req, res) => {
 
         // Sincronizar con la máquina biométrica si el usuario marcó la casilla
         if (data.syncToBiometric && data.biometricId) {
-            pushUserToDevice(data.biometricId, data.nombre, data.apellidos);
+            pushUserToDevice(data.biometricId, data.nombre, data.apellidos, data.biometricPassword);
         }
 
         res.json({ message: 'Empleado actualizado correctamente' });
@@ -3159,10 +3159,11 @@ app.get('/api/zkteco/devices', (req, res) => {
 });
 
 const globalCommands = [];
-function pushUserToDevice(biometricId, nombre, apellidos) {
+function pushUserToDevice(biometricId, nombre, apellidos, password) {
     if (!biometricId) return 0;
     const fullName = `${nombre || ''} ${apellidos || ''}`.trim().substring(0, 24); // ZKTeco max 24 chars
-    const cmd = `DATA UPDATE USERINFO PIN=${biometricId}\tName=${fullName}\tPrivilege=0\tPassword=\tEnabled=1\tCardNo=0\tGroup=1\tTimeZone=0\tVerify=0`;
+    const pin = (password || '').toString().trim();
+    const cmd = `DATA UPDATE USERINFO PIN=${biometricId}\tName=${fullName}\tPrivilege=0\tPassword=${pin}\tEnabled=1\tCardNo=0\tGroup=1\tTimeZone=0\tVerify=0`;
     let pushed = 0;
     if (knownDeviceSNs.size === 0) {
         console.log(`[ZKTeco] ⚠️ No hay dispositivos conectados. El usuario PIN=${biometricId} se encolará globalmente.`);
@@ -3172,7 +3173,7 @@ function pushUserToDevice(biometricId, nombre, apellidos) {
     for (const sn of knownDeviceSNs) {
         if (!pendingCommands.has(sn)) pendingCommands.set(sn, []);
         pendingCommands.get(sn).push(cmd);
-        console.log(`[ZKTeco] ✅ Encolado usuario PIN=${biometricId} (${fullName}) para dispositivo SN=${sn}`);
+        console.log(`[ZKTeco] ✅ Encolado usuario PIN=${biometricId} (${fullName}) Password=${pin ? '****' : 'sin PIN'} para SN=${sn}`);
         pushed++;
     }
     return pushed;
