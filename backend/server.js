@@ -14,7 +14,7 @@ import gmailRoutes from './integrations/gmailRoutes.js';
 const app = express();
 app.set('trust proxy', true);
 const pendingCommands = new Map();
-const biometricUsersCache = new Map(); // Almacena { name, password, privilege, card } por PIN
+const biometricUsersCache = new Map();
 const knownDeviceSNs = new Set();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -2803,9 +2803,9 @@ async function syncBiometricUserToDB(pin, name, extraData = {}) {
         const pool = await poolPlanilla;
         if (!pool) return;
 
-        const password  = extraData.password  ?? null;
-        const privilege = extraData.privilege  != null ? parseInt(extraData.privilege) : null;
-        const card      = extraData.card       ?? null;
+        const password = extraData.password ?? null;
+        const privilege = extraData.privilege != null ? parseInt(extraData.privilege) : null;
+        const card = extraData.card ?? null;
 
         // Asegurar columnas extras en la tabla (migracion en caliente)
         try {
@@ -2820,11 +2820,11 @@ async function syncBiometricUserToDB(pin, name, extraData = {}) {
         } catch (_) { /* columnas ya existen */ }
 
         await pool.request()
-            .input('pin',       mssql.Int,          pin)
-            .input('name',      mssql.NVarChar,     name)
-            .input('password',  mssql.NVarChar(100),password)
-            .input('privilege', mssql.Int,          privilege)
-            .input('card',      mssql.NVarChar(50), card)
+            .input('pin', mssql.Int, pin)
+            .input('name', mssql.NVarChar, name)
+            .input('password', mssql.NVarChar(100), password)
+            .input('privilege', mssql.Int, privilege)
+            .input('card', mssql.NVarChar(50), card)
             .query(`
                 IF EXISTS (SELECT 1 FROM BIOMETRIC_USERS WHERE PIN = @pin)
                     UPDATE BIOMETRIC_USERS 
@@ -2976,24 +2976,24 @@ app.post('/iclock/cdata', async (req, res) => {
                     }
                 });
 
-                const pin  = data.PIN || data.USERID;
+                const pin = data.PIN || data.USERID;
                 const name = data.NAME || `Usuario sin nombre (ID: ${pin})`;
 
                 if (pin) {
                     // Guardar objeto completo en cache
                     const userObj = {
                         name,
-                        password:  data.PASSWORD  || null,
-                        privilege: data.PRIVILEGE  || null,
-                        card:      data.CARD       || null
+                        password: data.PASSWORD || null,
+                        privilege: data.PRIVILEGE || null,
+                        card: data.CARD || null
                     };
                     biometricUsersCache.set(pin.toString(), userObj);
                     userCount++;
 
                     syncBiometricUserToDB(pin, name, {
-                        password:  data.PASSWORD  || null,
-                        privilege: data.PRIVILEGE  || null,
-                        card:      data.CARD       || null
+                        password: data.PASSWORD || null,
+                        privilege: data.PRIVILEGE || null,
+                        card: data.CARD || null
                     });
 
                     if (!data.NAME) {
@@ -3096,7 +3096,17 @@ app.get('/iclock/getrequest', (req, res) => {
         }
         if (!pendingCommands.has(SN)) {
             console.log(`[ADMS] 📡 Primera poll detectada de SN: ${SN}. Iniciando sync...`);
-            pendingCommands.set(SN, ['DATA QUERY ATTLOG', 'DATA QUERY USERINFO', 'DATA QUERY USER', 'DATA QUERY USERDATA', 'DATA QUERY PIN2NAME']);
+            pendingCommands.set(SN, [
+                'DATA QUERY ATTLOG',
+                'DATA QUERY USERINFO',
+                'DATA QUERY USER',
+                'DATA QUERY USERDATA',
+                'DATA QUERY PIN2NAME',
+                'DATA QUERY TEMPLATE',
+                'DATA QUERY BIODATA',
+                'INFO USER',
+                'INFO USERDATA'
+            ]);
         }
 
         const queue = pendingCommands.get(SN);
@@ -3121,7 +3131,17 @@ app.get('/api/attendance/force-biometric-sync', (req, res) => {
     if (!SN) return res.status(400).json({ error: 'Falta SN' });
 
     console.log(`[ADMS] 🔄 Forzando sincronización manual para SN: ${SN}`);
-    pendingCommands.set(SN, ['DATA QUERY ATTLOG', 'DATA QUERY USERINFO', 'DATA QUERY USER', 'DATA QUERY USERDATA', 'DATA QUERY PIN2NAME']);
+    pendingCommands.set(SN, [
+        'DATA QUERY ATTLOG',
+        'DATA QUERY USERINFO',
+        'DATA QUERY USER',
+        'DATA QUERY USERDATA',
+        'DATA QUERY PIN2NAME',
+        'DATA QUERY TEMPLATE',
+        'DATA QUERY BIODATA',
+        'INFO USER',
+        'INFO USERDATA'
+    ]);
 
     res.json({ message: `Sincronización encolada para ${SN}. El equipo la recibirá en su próxima consulta.` });
 });
@@ -3222,10 +3242,10 @@ app.post('/api/zkteco/sync-all-employees', async (req, res) => {
 app.get('/api/attendance/debug-biometric-users', (req, res) => {
     const users = Array.from(biometricUsersCache.entries()).map(([pin, val]) => ({
         pin,
-        name:      typeof val === 'object' ? val.name      : val,
-        password:  typeof val === 'object' ? val.password  : null,
+        name: typeof val === 'object' ? val.name : val,
+        password: typeof val === 'object' ? val.password : null,
         privilege: typeof val === 'object' ? val.privilege : null,
-        card:      typeof val === 'object' ? val.card      : null
+        card: typeof val === 'object' ? val.card : null
     }));
     console.log(`[DEBUG-API] Consultando cache de usuarios. Total en memoria: ${users.length}`);
     res.json({
@@ -3250,7 +3270,7 @@ app.get('/api/biometric/device-users', async (req, res) => {
                 IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('BIOMETRIC_USERS') AND name = 'CARD')
                     ALTER TABLE BIOMETRIC_USERS ADD CARD NVARCHAR(50) NULL;
             `);
-        } catch (_) {}
+        } catch (_) { }
 
         const result = await pool.request().query(`
             SELECT 
@@ -3276,18 +3296,18 @@ app.get('/api/biometric/device-users', async (req, res) => {
         const cacheOnly = Array.from(biometricUsersCache.entries())
             .filter(([pin]) => !dbPins.has(pin.toString()))
             .map(([pin, val]) => ({
-                PIN:      pin,
-                NAME:     typeof val === 'object' ? val.name      : val,
-                PASSWORD: typeof val === 'object' ? val.password  : null,
-                PRIVILEGE:typeof val === 'object' ? val.privilege : null,
-                CARD:     typeof val === 'object' ? val.card      : null,
-                SYNC_DATE:       null,
-                ID_EMPLOYEE:     null,
-                EMP_NOMBRE:      null,
-                EMP_APELLIDOS:   null,
-                EMP_DNI:         null,
-                EMP_CARGO:       null,
-                EMP_BIOMETRIC_ID:null,
+                PIN: pin,
+                NAME: typeof val === 'object' ? val.name : val,
+                PASSWORD: typeof val === 'object' ? val.password : null,
+                PRIVILEGE: typeof val === 'object' ? val.privilege : null,
+                CARD: typeof val === 'object' ? val.card : null,
+                SYNC_DATE: null,
+                ID_EMPLOYEE: null,
+                EMP_NOMBRE: null,
+                EMP_APELLIDOS: null,
+                EMP_DNI: null,
+                EMP_CARGO: null,
+                EMP_BIOMETRIC_ID: null,
                 source: 'cache_only'
             }));
 
