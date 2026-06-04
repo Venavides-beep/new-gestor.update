@@ -1,8 +1,16 @@
 /* === Resaltado de fila desde notificación === */
 @keyframes rowHighlight {
-    0%   { background-color: #fef9c3; }
-    40%  { background-color: #fef08a; }
-    100% { background-color: transparent; }
+    0% {
+        background-color: #fef9c3;
+    }
+
+    40% {
+        background-color: #fef08a;
+    }
+
+    100% {
+        background-color: transparent;
+    }
 }
 
 .row-highlighted {
@@ -50,48 +58,62 @@ hr {
     overflow-x: auto;
     border-radius: 10px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-    -webkit-overflow-scrolling: touch; /* Desplazamiento suave en iOS */
+    -webkit-overflow-scrolling: touch;
 }
 
-/* Mobile responsive table → cards (similar to employees) */
 @media (max-width: 640px) {
-  .table-container {
-    background-color: transparent !important;
-    box-shadow: none !important;
-  }
-  .table-form-proveedores, .table-form-proveedores thead, .table-form-proveedores tbody,
-  .table-form-proveedores th, .table-form-proveedores td, .table-form-proveedores tr {
-    display: block;
-    width: 100% !important;
-    min-width: 100% !important;
-    box-sizing: border-box;
-  }
-  .table-form-proveedores thead { display: none; }
-  .table-form-proveedores tbody tr {
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    margin-bottom: 1.25rem;
-    padding: 1.25rem;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
-    transition: transform 0.2s ease;
-  }
-  .table-form-proveedores tbody tr:hover { background-color: #ffffff; }
-  .table-form-proveedores td {
-    padding: 0.4rem 0 !important;
-    border-bottom: none !important;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-  }
-  .table-form-proveedores td::before {
-    content: attr(data-label);
-    font-weight: 700;
-    min-width: 110px;
-    color: #6b7280;
-    margin-right: 0.5rem;
-  }
+    .table-container {
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
+
+    .table-form-proveedores,
+    .table-form-proveedores thead,
+    .table-form-proveedores tbody,
+    .table-form-proveedores th,
+    .table-form-proveedores td,
+    .table-form-proveedores tr {
+        display: block;
+        width: 100% !important;
+        min-width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    .table-form-proveedores thead {
+        display: none;
+    }
+
+    .table-form-proveedores tbody tr {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        margin-bottom: 1.25rem;
+        padding: 1.25rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        transition: transform 0.2s ease;
+    }
+
+    .table-form-proveedores tbody tr:hover {
+        background-color: #ffffff;
+    }
+
+    .table-form-proveedores td {
+        padding: 0.4rem 0 !important;
+        border-bottom: none !important;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+        font-size: 0.9rem;
+    }
+
+    .table-form-proveedores td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: #6b7280;
+        font-size: 0.85rem;
+        margin-bottom: 0.1rem;
+    }
 }
 
 .table-form-proveedores {
@@ -337,4 +359,400 @@ hr {
 
 .btn-action-icon:hover {
     color: #1a1a2e;
+}
+
+/* Botón de dominios — resaltado azul */
+.btn-dominios {
+    color: #3b82f6;
+}
+
+.btn-dominios:hover {
+    color: #1d4ed8;
+}
+
+
+/* ==================== MODAL DOMINIOS WHMCS ==================== */
+.dominios-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.55);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.dominios-modal-content {
+    background-color: #ffffff;
+    width: 95%;
+    max-width: 960px;
+    max-height: 85vh;
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    font-family: var(--fuente-principal);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 0.3s ease;
+}
+
+/* Header */
+.dominios-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(135deg, #f0f5ff 0%, #f9fafb 100%);
+}
+
+.dominios-header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.dominios-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.dominios-subtitle {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 2px;
+    display: block;
+}
+
+/* Filtros */
+.dominios-filtros {
+    display: flex;
+    gap: 10px;
+    padding: 16px 24px;
+    border-bottom: 1px solid #f3f4f6;
+    background: #fafbfc;
+    flex-wrap: wrap;
+}
+
+.filtro-buscar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 200px;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 0 12px;
+    transition: border-color 0.2s;
+}
+
+.filtro-buscar:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filtro-buscar input {
+    border: none;
+    outline: none;
+    padding: 10px 0;
+    font-size: 14px;
+    font-family: inherit;
+    flex: 1;
+    background: transparent;
+}
+
+.filtro-select {
+    padding: 10px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    background: white;
+    color: #374151;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.filtro-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Loading */
+.dominios-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 60px 20px;
+    color: #6b7280;
+    font-size: 15px;
+}
+
+.spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Tabla de dominios */
+.dominios-table-wrapper {
+    overflow-y: auto;
+    overflow-x: auto;
+    flex: 1;
+    max-height: calc(85vh - 250px);
+}
+
+.dominios-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.dominios-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.dominios-table thead tr {
+    background-color: #f9fafb;
+}
+
+.dominios-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+}
+
+.dominios-table td {
+    padding: 11px 16px;
+    border-bottom: 1px solid #f3f4f6;
+    color: #374151;
+    vertical-align: middle;
+}
+
+.dominios-table tbody tr {
+    transition: background-color 0.15s;
+}
+
+.dominios-table tbody tr:hover {
+    background-color: #f9fafb;
+}
+
+/* Nombre de dominio */
+.dominio-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #1e40af !important;
+}
+
+/* Días badge */
+.dias-cell {
+    text-align: center;
+}
+
+.dias-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.dias-badge.estado-activo {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.dias-badge.estado-pronto {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.dias-badge.estado-critico {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.dias-badge.estado-vencido {
+    background: #fecaca;
+    color: #7f1d1d;
+}
+
+/* Estado badge */
+.estado-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.estado-badge.estado-activo {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.estado-badge.estado-pronto {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.estado-badge.estado-critico {
+    background: #fee2e2;
+    color: #991b1b;
+    animation: pulse 1.5s ease infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.estado-badge.estado-vencido {
+    background: #fecaca;
+    color: #7f1d1d;
+}
+
+.estado-badge.estado-desconocido {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+/* Colores de fila según estado */
+tr.estado-vencido td {
+    background-color: #fff5f5 !important;
+}
+
+tr.estado-critico td {
+    background-color: #fffbeb !important;
+}
+
+/* Empty */
+.dominios-empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 15px;
+}
+
+/* Footer */
+.dominios-modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 24px;
+    border-top: 1px solid #e5e7eb;
+    background: #fafbfc;
+}
+
+.dominios-footer-info {
+    font-size: 12px;
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* ==================== RESPONSIVE DOMINIOS MODAL ==================== */
+@media (max-width: 768px) {
+    .dominios-modal-content {
+        width: 100%;
+        max-width: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+        height: 100vh;
+    }
+
+    .dominios-filtros {
+        flex-direction: column;
+    }
+
+    .filtro-buscar {
+        min-width: unset;
+    }
+
+    .dominios-table thead {
+        display: none;
+    }
+
+    .dominios-table,
+    .dominios-table tbody,
+    .dominios-table tr,
+    .dominios-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .dominios-table tbody tr {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        margin: 0 12px 12px 12px;
+        padding: 16px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    }
+
+    .dominios-table td {
+        padding: 5px 0 !important;
+        border-bottom: none !important;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+
+    .dominios-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: #6b7280;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .dominio-name {
+        font-size: 15px !important;
+    }
+
+    .dominios-modal-footer {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .dominios-table-wrapper {
+        max-height: calc(100vh - 280px);
+    }
 }

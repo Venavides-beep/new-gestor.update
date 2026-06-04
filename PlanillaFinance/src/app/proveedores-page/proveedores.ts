@@ -14,12 +14,23 @@ import { API_URL, getAuthHeaders } from '../api-config';
 export class ProveedoresComponent implements OnInit {
     showModal: boolean = false;
     showModal2: boolean = false;
+    showDominiosModal: boolean = false;
     isSearchingRuc: boolean = false;
     isSaving: boolean = false;
+    loadingDominios: boolean = false;
     highlightedId: number | null = null;
 
     proveedoresList: any[] = [];
     datsproveedor: any = {};
+    dominiosList: any[] = [];
+    dominiosTotal: number = 0;
+    selectedProveedorNombre: string = '';
+
+    // Filtros del modal de dominios
+    filtroDominio: string = '';
+    filtroEstado: string = 'todos';
+    filtroVencimiento: string = 'todos';
+    ordenDias: 'asc' | 'desc' = 'asc';
 
     nuevoProveedor: any = {
         id: null,
@@ -32,7 +43,7 @@ export class ProveedoresComponent implements OnInit {
         codigoProveedor: ''
     };
 
-    tiposProveedor = ['Servicios', 'Productos', 'Suscripciones', 'Otros'];
+    tiposProveedor = ['Servicios', 'Productos', 'Suscripciones', 'Dominios', 'Otros'];
 
     constructor(private route: ActivatedRoute) { }
 
@@ -80,6 +91,26 @@ export class ProveedoresComponent implements OnInit {
         }
     }
 
+    generarCodigoProveedor(): string {
+        let maxNumber = 0;
+        const prefix = 'PROV';
+        for (const p of this.proveedoresList) {
+            const code = p.codigoProveedor;
+            if (code && typeof code === 'string') {
+                const match = code.match(/^[Pp][Rr][Oo][Vv](\d+)$/);
+                if (match) {
+                    const num = parseInt(match[1], 10);
+                    if (num > maxNumber) {
+                        maxNumber = num;
+                    }
+                }
+            }
+        }
+        const nextNumber = maxNumber + 1;
+        const paddedNumber = String(nextNumber).padStart(3, '0');
+        return `${prefix}${paddedNumber}`;
+    }
+
     abrirModal() {
         this.showModal = true;
         this.nuevoProveedor = {
@@ -90,7 +121,7 @@ export class ProveedoresComponent implements OnInit {
             fechaPago: '',
             estado: 'PENDIENTE',
             url: '',
-            codigoProveedor: ''
+            codigoProveedor: this.generarCodigoProveedor()
         };
     }
 
@@ -138,6 +169,143 @@ export class ProveedoresComponent implements OnInit {
         this.showModal2 = false;
     }
 
+    // ==================== DOMINIOS ====================
+    async verDominios(proveedor: any) {
+        this.showDominiosModal = true;
+        this.loadingDominios = true;
+        this.dominiosList = [];
+        this.dominiosTotal = 0;
+        this.selectedProveedorNombre = proveedor.razonSocial || proveedor.url || 'Proveedor';
+        this.filtroDominio = '';
+        this.filtroEstado = 'todos';
+        this.filtroVencimiento = 'todos';
+
+        try {
+            const response = await fetch(`${API_URL}/api/whmcs/domains`, {
+                headers: getAuthHeaders()
+            });
+            if (response.ok) {
+                const data = await response.json();
+                let loadedDomains = data.dominios || [];
+                const nombreLower = this.selectedProveedorNombre.toLowerCase();
+                if (nombreLower.includes('punto')) {
+                    loadedDomains = loadedDomains.filter((d: any) => 
+                        d.dominio && d.dominio.toLowerCase().endsWith('.pe')
+                    );
+                }
+                this.dominiosList = loadedDomains;
+                this.dominiosTotal = loadedDomains.length;
+            } else {
+                console.error('Error al obtener dominios:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error al cargar dominios:', error);
+        } finally {
+            this.loadingDominios = false;
+        }
+    }
+
+    cerrarDominiosModal() {
+        this.showDominiosModal = false;
+        this.dominiosList = [];
+    }
+
+    get dominiosFiltrados(): any[] {
+        let filtered = [...this.dominiosList];
+
+        // Filtro por texto (nombre de dominio)
+        if (this.filtroDominio) {
+            const term = this.filtroDominio.toLowerCase();
+            filtered = filtered.filter(d =>
+                d.dominio?.toLowerCase().includes(term) ||
+                d.clienteNombre?.toLowerCase().includes(term)
+            );
+        }
+
+        // Filtro por estado
+        if (this.filtroEstado !== 'todos') {
+            filtered = filtered.filter(d =>
+                d.estado?.toLowerCase() === this.filtroEstado.toLowerCase()
+            );
+        }
+
+        // Filtro por vencimiento
+        if (this.filtroVencimiento === 'mes') {
+            const now = new Date();
+            const mesActual = now.getMonth();
+            const anioActual = now.getFullYear();
+            filtered = filtered.filter(d => {
+                if (!d.fechaVencimiento) return false;
+                const exp = new Date(d.fechaVencimiento);
+                return exp.getMonth() === mesActual && exp.getFullYear() === anioActual;
+            });
+        } else if (this.filtroVencimiento === 'vencidos') {
+            filtered = filtered.filter(d => d.diasRestantes !== null && d.diasRestantes < 0);
+        } else if (this.filtroVencimiento === 'proximos30') {
+            filtered = filtered.filter(d => d.diasRestantes !== null && d.diasRestantes >= 0 && d.diasRestantes <= 30);
+        }
+
+        // Ordenar por días restantes (valor absoluto para ordenar por magnitud: 0d, luego 1d/-1d, luego -2d)
+        filtered.sort((a, b) => {
+            const diasA = a.diasRestantes !== null ? a.diasRestantes : 999999;
+            const diasB = b.diasRestantes !== null ? b.diasRestantes : 999999;
+            const absA = Math.abs(diasA);
+            const absB = Math.abs(diasB);
+            if (this.ordenDias === 'asc') {
+                if (absA !== absB) {
+                    return absA - absB;
+                }
+                return diasB - diasA; // Mostrar positivos (ej: 1d) antes que negativos (ej: -1d)
+            } else {
+                if (absA !== absB) {
+                    return absB - absA;
+                }
+                return diasA - diasB;
+            }
+        });
+
+        return filtered;
+    }
+
+    alternarOrdenDias() {
+        this.ordenDias = this.ordenDias === 'asc' ? 'desc' : 'asc';
+    }
+
+    getEstadoClass(dominio: any): string {
+        if (!dominio.diasRestantes && dominio.diasRestantes !== 0) return 'estado-desconocido';
+        if (dominio.diasRestantes < 0) return 'estado-vencido';
+        if (dominio.diasRestantes <= 7) return 'estado-critico';
+        if (dominio.diasRestantes <= 30) return 'estado-pronto';
+        return 'estado-activo';
+    }
+
+    getEstadoTexto(dominio: any): string {
+        if (dominio.estado === 'Expired') return 'Expirado';
+        if (dominio.estado === 'Active') {
+            if (dominio.diasRestantes !== null && dominio.diasRestantes < 0) return 'Vencido';
+            if (dominio.diasRestantes !== null && dominio.diasRestantes <= 7) return 'Crítico';
+            if (dominio.diasRestantes !== null && dominio.diasRestantes <= 30) return 'Por vencer';
+            return 'Activo';
+        }
+        if (dominio.estado === 'Pending') return 'Pendiente';
+        if (dominio.estado === 'Cancelled') return 'Cancelado';
+        return dominio.estado;
+    }
+
+    // Resumen rápido para el badge en la tabla de proveedores
+    get contadorDominiosVencenMes(): number {
+        const now = new Date();
+        const mesActual = now.getMonth();
+        const anioActual = now.getFullYear();
+        return this.dominiosList.filter(d => {
+            if (!d.fechaVencimiento) return false;
+            const exp = new Date(d.fechaVencimiento);
+            return exp.getMonth() === mesActual && exp.getFullYear() === anioActual;
+        }).length;
+    }
+
+    // ==================== FIN DOMINIOS ====================
+
     async consultarRUC() {
         if (!this.nuevoProveedor.ruc || this.nuevoProveedor.ruc.length !== 11) {
             alert('Por favor ingrese un RUC válido de 11 dígitos.');
@@ -167,7 +335,7 @@ export class ProveedoresComponent implements OnInit {
         this.isSaving = true;
         try {
             const isEditing = !!this.nuevoProveedor.id;
-            const url = isEditing 
+            const url = isEditing
                 ? `${API_URL}/api/finance/proveedores/${this.nuevoProveedor.id}`
                 : `${API_URL}/api/finance/proveedores`;
             const method = isEditing ? 'PUT' : 'POST';
