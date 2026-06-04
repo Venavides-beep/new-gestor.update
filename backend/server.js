@@ -1290,7 +1290,7 @@ app.put('/api/empleados/:id/reactivar', async (req, res) => {
 app.delete('/api/empleados/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { motivo } = req.body;
+        const { motivo, deleteFromBiometric } = req.body;
         const pool = await poolPlanilla;
 
         const empRes = await pool.request()
@@ -1327,6 +1327,13 @@ app.delete('/api/empleados/:id', async (req, res) => {
         await pool.request()
             .input('id', mssql.Int, id)
             .query("UPDATE EMPLOYEES SET ACTIVO = 0, FECHA_FIN_CONTRATO = GETDATE() WHERE ID_EMPLOYEE = @id");
+
+        if (deleteFromBiometric && emp.BIOMETRIC_ID) {
+            deleteUserFromDevice(emp.BIOMETRIC_ID);
+            await pool.request()
+                .input('id', mssql.Int, id)
+                .query("UPDATE EMPLOYEES SET BIOMETRIC_ID = NULL WHERE ID_EMPLOYEE = @id");
+        }
 
         res.json({ message: 'Empleado dado de baja y archivado exitosamente' });
     } catch (error) {
@@ -3161,7 +3168,7 @@ app.get('/api/zkteco/devices', (req, res) => {
 const globalCommands = [];
 function pushUserToDevice(biometricId, nombre, apellidos, password) {
     if (!biometricId) return 0;
-    const fullName = `${nombre || ''} ${apellidos || ''}`.trim().substring(0, 24); // ZKTeco max 24 chars
+    const fullName = `${nombre || ''} ${apellidos || ''}`.trim().substring(0, 24);
     const pin = (password || '').toString().trim();
     const cmd = `DATA UPDATE USERINFO PIN=${biometricId}\tName=${fullName}\tPrivilege=0\tPassword=${pin}\tEnabled=1\tCardNo=0\tGroup=1\tTimeZone=0\tVerify=0`;
 
@@ -3186,6 +3193,36 @@ function pushUserToDevice(biometricId, nombre, apellidos, password) {
         if (!pendingCommands.has(sn)) pendingCommands.set(sn, []);
         pendingCommands.get(sn).push(cmd);
         console.log(`[ZKTeco] ✅ Encolado usuario PIN=${biometricId} (${fullName}) Password=${pin ? '****' : 'sin PIN'} para SN=${sn}`);
+        pushed++;
+    }
+    return pushed;
+}
+
+function deleteUserFromDevice(biometricId) {
+    if (!biometricId) return 0;
+    const cmd = `DATA DELETE USERINFO PIN=${biometricId}`;
+    
+    // Eliminar de la caché local de inmediato
+    biometricUsersCache.delete(biometricId.toString());
+
+    // Eliminar también de la base de datos (BIOMETRIC_USERS)
+    poolPlanilla.then(pool => {
+        if (!pool) return;
+        return pool.request()
+            .input('pin', mssql.Int, biometricId)
+            .query('DELETE FROM BIOMETRIC_USERS WHERE PIN = @pin');
+    }).catch(err => console.error('[ZKTeco] Error al eliminar usuario de la base de datos local:', err));
+
+    let pushed = 0;
+    if (knownDeviceSNs.size === 0) {
+        console.log(`[ZKTeco] ⚠️ No hay dispositivos conectados. La orden de borrar PIN=${biometricId} se encolará globalmente.`);
+        globalCommands.push(cmd);
+        return 1;
+    }
+    for (const sn of knownDeviceSNs) {
+        if (!pendingCommands.has(sn)) pendingCommands.set(sn, []);
+        pendingCommands.get(sn).push(cmd);
+        console.log(`[ZKTeco] 🗑️ Encolada eliminación de usuario PIN=${biometricId} para SN=${sn}`);
         pushed++;
     }
     return pushed;
