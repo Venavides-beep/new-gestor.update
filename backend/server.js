@@ -2977,15 +2977,14 @@ app.post('/iclock/cdata', async (req, res) => {
                     }
                 });
 
-                const pin  = data.PIN || data.USERID;
+                const pin = data.PIN || data.USERID;
                 const name = data.NAME || `Usuario sin nombre (ID: ${pin})`;
 
                 if (pin) {
-                    const password  = data.PASSWORD || data.PASSWD || null;
+                    const password = data.PASSWORD || data.PASSWD || null;
                     const privilege = data.PRIVILEGE || data.PRI || null;
-                    const card      = data.CARD || null;
+                    const card = data.CARD || null;
 
-                    // Guardar objeto completo en cache
                     const userObj = {
                         name,
                         password,
@@ -3241,6 +3240,44 @@ app.post('/api/zkteco/sync-all-employees', async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ error: 'Error al sincronizar empleados', details: error.message });
+    }
+});
+
+app.get('/api/zkteco/check-user/:biometricId', async (req, res) => {
+    try {
+        const { biometricId } = req.params;
+        const pinStr = biometricId.toString();
+
+        if (biometricUsersCache.has(pinStr)) {
+            const cacheUser = biometricUsersCache.get(pinStr);
+            console.log(`[CHECK-USER] Encontrado en caché: PIN ${pinStr}`);
+            return res.json({
+                exists: true,
+                source: 'cache',
+                password: typeof cacheUser === 'object' ? cacheUser.password : ''
+            });
+        }
+
+        const pool = await poolPlanilla;
+        const result = await pool.request()
+            .input('pin', mssql.Int, parseInt(biometricId))
+            .query('SELECT PIN, NAME, PASSWORD FROM BIOMETRIC_USERS WHERE PIN = @pin');
+
+        if (result.recordset.length > 0) {
+            const dbUser = result.recordset[0];
+            console.log(`[CHECK-USER] Encontrado en BD: PIN ${pinStr}`);
+            return res.json({
+                exists: true,
+                source: 'database',
+                password: dbUser.PASSWORD || ''
+            });
+        }
+
+        console.log(`[CHECK-USER] No encontrado: PIN ${pinStr}`);
+        res.json({ exists: false });
+    } catch (error) {
+        console.error('[CHECK-USER] Error:', error);
+        res.status(500).json({ error: 'Error al verificar usuario en el biométrico' });
     }
 });
 
