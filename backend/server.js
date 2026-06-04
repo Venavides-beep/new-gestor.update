@@ -2977,24 +2977,28 @@ app.post('/iclock/cdata', async (req, res) => {
                     }
                 });
 
-                const pin = data.PIN || data.USERID;
+                const pin  = data.PIN || data.USERID;
                 const name = data.NAME || `Usuario sin nombre (ID: ${pin})`;
 
                 if (pin) {
+                    const password  = data.PASSWORD || data.PASSWD || null;
+                    const privilege = data.PRIVILEGE || data.PRI || null;
+                    const card      = data.CARD || null;
+
                     // Guardar objeto completo en cache
                     const userObj = {
                         name,
-                        password: data.PASSWORD || null,
-                        privilege: data.PRIVILEGE || null,
-                        card: data.CARD || null
+                        password,
+                        privilege,
+                        card
                     };
                     biometricUsersCache.set(pin.toString(), userObj);
                     userCount++;
 
                     syncBiometricUserToDB(pin, name, {
-                        password: data.PASSWORD || null,
-                        privilege: data.PRIVILEGE || null,
-                        card: data.CARD || null
+                        password,
+                        privilege,
+                        card
                     });
 
                     if (!data.NAME) {
