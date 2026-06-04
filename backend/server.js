@@ -2952,6 +2952,7 @@ app.post('/iclock/cdata', async (req, res) => {
     if (table === 'USERINFO' || table === 'USER' || table === 'OPERLOG') {
         try {
             const bodyContent = req.body.toString();
+            console.log(`[ADMS-DEBUG-BODY] Contenido crudo recibido para tabla ${table}:\n${bodyContent}`);
             const lines = bodyContent.split('\n');
             let userCount = 0;
 
