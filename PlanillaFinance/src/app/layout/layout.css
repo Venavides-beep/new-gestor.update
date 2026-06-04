@@ -344,7 +344,7 @@
 /* Dropdown Box */
 .dropdown-menu-box {
     position: absolute;
-    top: calc(100% - 4px);
+    top: 100%;
     right: 0;
     background-color: #ffffff;
     border: 1px solid #e2e8f0;
@@ -355,6 +355,7 @@
     z-index: 1000;
     opacity: 0;
     visibility: hidden;
+    pointer-events: none;
     transform: translateY(-8px);
     transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
 }
@@ -362,21 +363,12 @@
 .dropdown-menu-box.show {
     opacity: 1;
     visibility: visible;
+    pointer-events: all;
     transform: translateY(0);
 }
 
 /* Support hover display on desktop */
-@media (hover: hover) {
-    .user-dropdown-container:hover .dropdown-menu-box {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-    }
 
-    .user-dropdown-container:hover .arrow-icon {
-        transform: rotate(180deg);
-    }
-}
 
 .dropdown-header {
     padding: 0.6rem 1rem;

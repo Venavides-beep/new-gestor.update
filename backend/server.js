@@ -2518,7 +2518,7 @@ app.get('/api/finance/proveedores', async (req, res) => {
 
 app.post('/api/finance/proveedores', async (req, res) => {
     try {
-        const { ruc, razonSocial, tipoProveedor, fechaPago, estado, url } = req.body;
+        const { ruc, razonSocial, tipoProveedor, fechaPago, estado, url, codigoProveedor } = req.body;
         const pool = await poolFinance;
 
         // Verificación de RUC duplicado (solo si se ingresa RUC)
@@ -2537,18 +2537,49 @@ app.post('/api/finance/proveedores', async (req, res) => {
         request.input('razon', mssql.VarChar(255), razonSocial);
         request.input('tipo', mssql.VarChar(50), tipoProveedor || null);
         request.input('fecha', mssql.Date, fechaPago ? new Date(fechaPago) : null);
-        request.input('estado', mssql.VarChar(20), estado || 'Pendiente');
+        request.input('estado', mssql.VarChar(20), estado || 'PENDIENTE');
         request.input('url', mssql.VarChar(255), url || null);
+        request.input('codigo', mssql.VarChar(20), codigoProveedor || null);
 
         await request.query(`
-            INSERT INTO FINANCE_PROVEEDORES (RUC, RazonSocial, TipoProveedor, FechaPago, Estado, Url)
-            VALUES (@ruc, @razon, @tipo, @fecha, @estado, @url)
+            INSERT INTO FINANCE_PROVEEDORES (RUC, RazonSocial, TipoProveedor, FechaPago, Estado, Url, CodigoProveedor)
+            VALUES (@ruc, @razon, @tipo, @fecha, @estado, @url, @codigo)
         `);
 
         res.json({ success: true, message: 'Proveedor registrado con éxito' });
     } catch (error) {
         console.error('Error al registrar proveedor:', error);
         res.status(500).json({ error: 'Error al registrar proveedor' });
+    }
+});
+
+app.put('/api/finance/proveedores/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { ruc, razonSocial, tipoProveedor, fechaPago, estado, url, codigoProveedor } = req.body;
+        const pool = await poolFinance;
+
+        const request = pool.request();
+        request.input('id', mssql.Int, id);
+        request.input('ruc', mssql.VarChar(11), ruc || null);
+        request.input('razon', mssql.VarChar(255), razonSocial);
+        request.input('tipo', mssql.VarChar(50), tipoProveedor || null);
+        request.input('fecha', mssql.Date, fechaPago ? new Date(fechaPago) : null);
+        request.input('estado', mssql.VarChar(20), estado || 'PENDIENTE');
+        request.input('url', mssql.VarChar(255), url || null);
+        request.input('codigo', mssql.VarChar(20), codigoProveedor || null);
+
+        await request.query(`
+            UPDATE FINANCE_PROVEEDORES 
+            SET RUC = @ruc, RazonSocial = @razon, TipoProveedor = @tipo, 
+                FechaPago = @fecha, Estado = @estado, Url = @url, CodigoProveedor = @codigo
+            WHERE Id = @id
+        `);
+
+        res.json({ success: true, message: 'Proveedor actualizado con éxito' });
+    } catch (error) {
+        console.error('Error al actualizar proveedor:', error);
+        res.status(500).json({ error: 'Error al actualizar proveedor' });
     }
 });
 

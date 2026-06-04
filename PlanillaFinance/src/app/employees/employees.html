@@ -345,46 +345,7 @@
                     </div>
                 </div>
 
-                <div class="form-section">
-                    <h3 class="section-title">Configuración de Asistencia (Biométrico)</h3>
 
-                    <div class="form-group-checkbox mt-2" *ngIf="!isViewOnly" style="margin-bottom: 15px;">
-                        <input type="checkbox" [(ngModel)]="newEmployee.syncToBiometric" name="syncToBiometric"
-                            id="syncBio" [disabled]="isBiometricRegistered">
-                        <label for="syncBio" [style.color]="isBiometricRegistered ? '#10b981' : '#2563eb'"
-                            [style.font-weight]="'bold'"
-                            [style.cursor]="isBiometricRegistered ? 'not-allowed' : 'pointer'"
-                            [style.opacity]="isBiometricRegistered ? '0.7' : '1'">
-                            <i class="fa-solid fa-fingerprint"></i>
-                            {{ biometricStatus || '¿Registrar/Actualizar en Equipo Biométrico ahora?' }}
-                        </label>
-                    </div>
-
-                    <div class="form-row three-col" *ngIf="newEmployee.syncToBiometric || isViewOnly">
-                        <div class="form-group">
-                            <label>ID Biométrico (Máquina)</label>
-                            <input type="number" [(ngModel)]="newEmployee.biometricId" name="biometricId"
-                                [disabled]="isViewOnly" class="form-control" placeholder="Ej: 15"
-                                (input)="checkBiometricRegistration()">
-                        </div>
-                        <div class="form-group">
-                            <label>Contraseña Máquina (PIN)</label>
-                            <input type="text" [(ngModel)]="newEmployee.biometricPassword" name="biometricPassword"
-                                [disabled]="isViewOnly" class="form-control" placeholder="6 dígitos" maxlength="6"
-                                pattern="\d*">
-                        </div>
-                        <div class="form-group">
-                            <label>Hora Entrada (Puntualidad)</label>
-                            <input type="time" [(ngModel)]="newEmployee.entryTime" name="entryTime"
-                                [disabled]="isViewOnly" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label>Hora Salida</label>
-                            <input type="time" [(ngModel)]="newEmployee.exitTime" name="exitTime"
-                                [disabled]="isViewOnly" class="form-control">
-                        </div>
-                    </div>
-                </div>
 
                 <div class="form-section">
                     <h3 class="section-title">Datos Bancarios</h3>
@@ -425,7 +386,51 @@
                         </div>
                     </div>
                 </div>
+                <div class="form-section">
+                    <h3 class="section-title">Configuración de Asistencia (Biométrico)</h3>
 
+                    <div *ngIf="isBiometricRegistered"
+                        style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #d1fae5; border: 1px solid #6ee7b7; border-radius: 8px;">
+                        <i class="fa-solid fa-fingerprint" style="color: #10b981; font-size: 1.2em;"></i>
+                        <span style="color: #065f46; font-weight: bold;">✅ Usuario ya registrado en equipo</span>
+                    </div>
+
+                    <div class="form-group-checkbox mt-2" *ngIf="!isViewOnly && !isBiometricRegistered"
+                        style="margin-bottom: 15px;">
+                        <input type="checkbox" [(ngModel)]="newEmployee.syncToBiometric" name="syncToBiometric"
+                            id="syncBio">
+                        <label for="syncBio" style="color: #2563eb; font-weight: bold; cursor: pointer;">
+                            <i class="fa-solid fa-fingerprint"></i>
+                            ¿Registrar/Actualizar en Equipo Biométrico ahora?
+                        </label>
+                    </div>
+
+                    <div class="form-row three-col"
+                        *ngIf="isBiometricRegistered || (!isViewOnly && newEmployee.syncToBiometric)">
+                        <div class="form-group">
+                            <label>ID Biométrico (Máquina)</label>
+                            <input type="number" [(ngModel)]="newEmployee.biometricId" name="biometricId"
+                                [disabled]="isViewOnly" class="form-control" placeholder="Ej: 15"
+                                (input)="checkBiometricRegistration()">
+                        </div>
+                        <div class="form-group">
+                            <label>Contraseña Máquina (PIN)</label>
+                            <input type="text" [(ngModel)]="newEmployee.biometricPassword" name="biometricPassword"
+                                [disabled]="isViewOnly" class="form-control" placeholder="6 dígitos" maxlength="6"
+                                pattern="\d*">
+                        </div>
+                        <div class="form-group">
+                            <label>Hora Entrada (Puntualidad)</label>
+                            <input type="time" [(ngModel)]="newEmployee.entryTime" name="entryTime"
+                                [disabled]="isViewOnly" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Hora Salida</label>
+                            <input type="time" [(ngModel)]="newEmployee.exitTime" name="exitTime"
+                                [disabled]="isViewOnly" class="form-control">
+                        </div>
+                    </div>
+                </div>
 
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel" (click)="closeAddModal()">{{ isViewOnly ? 'Cerrar' :
@@ -439,7 +444,6 @@
     </div>
 </div>
 
-<!-- Leave Modal -->
 <div class="modal-overlay" *ngIf="showLeaveModal" (click)="closeLeaveModal()">
     <div class="modal-content leave-modal" (click)="$event.stopPropagation()">
         <header class="modal-header">
@@ -450,6 +454,15 @@
         <div class="modal-body">
             <p>¿Está seguro de dar de baja a <strong>{{selectedEmployeeForLeave?.nombre}}
                     {{selectedEmployeeForLeave?.apellidos}}</strong>?</p>
+
+            <div class="form-group-checkbox mt-3" *ngIf="selectedEmployeeForLeave?.biometricId"
+                style="margin-bottom: 15px;">
+                <input type="checkbox" [(ngModel)]="deleteFromBiometric" name="deleteFromBiometric" id="delBio">
+                <label for="delBio" style="color: #dc2626; font-weight: bold; cursor: pointer;">
+                    <i class="fa-solid fa-fingerprint"></i>
+                    ¿Eliminar también del equipo biométrico?
+                </label>
+            </div>
 
             <div class="form-group mt-4">
                 <label>Motivo de la baja *</label>

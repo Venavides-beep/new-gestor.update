@@ -81,6 +81,7 @@ export class GestionEmpleadosComponent {
     showLeaveModal: boolean = false;
     leaveReason: string = '';
     selectedEmployeeForLeave: any = null;
+    deleteFromBiometric: boolean = false;
 
     employees: Employee[] = [];
     filteredEmployees: Employee[] = [];
@@ -128,6 +129,7 @@ export class GestionEmpleadosComponent {
             console.log('Sin ID, limpiando estado.');
             this.biometricStatus = '';
             this.isBiometricRegistered = false;
+            this.newEmployee.syncToBiometric = false;
             return;
         }
 
@@ -150,7 +152,7 @@ export class GestionEmpleadosComponent {
                     console.log('USUARIO ENCONTRADO EN EQUIPO. Bloqueando UI.');
                     this.biometricStatus = '✅ Usuario ya registrado en equipo';
                     this.isBiometricRegistered = true;
-                    this.newEmployee.syncToBiometric = false;
+                    this.newEmployee.syncToBiometric = true;
                     this.newEmployee.biometricPassword = data.password || ''; // Auto-llenar PIN
                 } else {
                     console.log('Usuario NO encontrado en equipo. Habilitando UI.');
@@ -344,6 +346,7 @@ export class GestionEmpleadosComponent {
         this.showAddModal = true;
         this.isViewOnly = false;
         this.submitted = false;
+        this.isBiometricRegistered = false;
         this.newEmployee = {
             nombre: '', apellidos: '', dni: '', sexo: '', nacionalidad: '', telefono: '', contactoEmergencia: '', numeroEmergencia: '', fechaNacimiento: '', direccion: '',
             email: '', cargo: '', departamento: '', tipoTrabajador: 'PLANILLA', regimenPensionario: 'SNP/ONP', sueldo: 0, asignacionFamiliar: false,
@@ -371,6 +374,9 @@ export class GestionEmpleadosComponent {
             }
         }
         try {
+            if (this.newEmployee.biometricId) {
+                this.newEmployee.syncToBiometric = true;
+            }
             const payload = { 
                 ...this.newEmployee, 
                 telefono: `${this.countryCode} ${this.newEmployee.telefono}`.trim(),
@@ -438,6 +444,7 @@ export class GestionEmpleadosComponent {
             fechaInicio: this.formatDate(employee.fechaInicio), 
             fechaFinContrato: this.formatDate(employee.fechaFinContrato) 
         };
+        this.isBiometricRegistered = !!employee.biometricId;
         this.showAddModal = true;
         this.checkBiometricRegistration();
         if (this.newEmployee.cargo && this.departamentosPorCargo[this.newEmployee.cargo]) {
@@ -478,10 +485,12 @@ export class GestionEmpleadosComponent {
             telefono: num,
             numeroEmergencia: numEmer,
             usarBiometrico: !!employee.biometricId,
+            syncToBiometric: !!employee.biometricId,
             fechaNacimiento: this.formatDate(employee.fechaNacimiento), 
             fechaInicio: this.formatDate(employee.fechaInicio), 
             fechaFinContrato: this.formatDate(employee.fechaFinContrato) 
         };
+        this.isBiometricRegistered = !!employee.biometricId;
         this.showAddModal = true;
         this.checkBiometricRegistration();
         if (this.newEmployee.cargo && this.departamentosPorCargo[this.newEmployee.cargo]) {
@@ -494,6 +503,7 @@ export class GestionEmpleadosComponent {
     openLeaveModal(employee: any) {
         this.selectedEmployeeForLeave = employee;
         this.leaveReason = '';
+        this.deleteFromBiometric = !!employee.biometricId;
         this.showLeaveModal = true;
     }
 
@@ -501,6 +511,7 @@ export class GestionEmpleadosComponent {
         this.showLeaveModal = false;
         this.selectedEmployeeForLeave = null;
         this.leaveReason = '';
+        this.deleteFromBiometric = false;
     }
 
     async confirmLeave() {
@@ -513,7 +524,10 @@ export class GestionEmpleadosComponent {
             const response = await fetch(API_URL + `/api/empleados/${this.selectedEmployeeForLeave._id}`, {
                 method: 'DELETE',
                 headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ motivo: this.leaveReason })
+                body: JSON.stringify({ 
+                    motivo: this.leaveReason,
+                    deleteFromBiometric: this.deleteFromBiometric
+                })
             });
             if (response.ok) {
                 const nombreEmpleado = this.selectedEmployeeForLeave.nombre;

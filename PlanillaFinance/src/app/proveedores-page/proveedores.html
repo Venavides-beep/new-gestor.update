@@ -4,62 +4,78 @@
     <a href="javascript:void(0)" class="enlace-registro" (click)="abrirModal()">+ Registrar Proveedor</a>
 </div>
 <div class="table-container">
-<table class="table-form-proveedores">
-    <thead>
-        <tr>
-            <th>RUC / Sitio Web</th>
-            <th>Razón Social</th>
-            <th>Tipo de Proveedor</th>
-            <th>Fecha de Pago</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        <!--este de aca esta mal-->
-        <tr *ngIf="proveedoresList.length === 0">
-            <td colspan="6" style="text-align: center; padding: 20px;">No hay proveedores registrados.</td>
-        </tr>
-        <tr *ngFor="let p of proveedoresList" style="color: black;">
-            <td style="color: black;">{{ p.ruc || p.url || '-' }}</td>
-            <td style="color: black;">{{ p.razonSocial }}</td>
-            <td style="color: black;">{{ p.tipoProveedor }}</td>
-            <td style="color: black;">{{ p.fechaPago }}</td>
-            <td>
-                <span [ngStyle]="{'color': p.estado === 'PENDIENTE' ? '#dc2626' : '#16a34a', 'font-weight': '600'}">
-                    {{ p.estado }}
-                </span>
-            </td>
-            <td>
-                <button class="btn-action-icon" title="Ver Más" (click)="verdatos(p)">
-                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                </button>
-                <button class="btn-action-icon" title="Exportar">
-                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                </button>
-            </td>
-        </tr>
-    </tbody>
-</table>
+    <table class="table-form-proveedores">
+        <thead>
+            <tr>
+                <th>Código de Proveedor</th>
+                <th>RUC / Sitio Web</th>
+                <th>Razón Social</th>
+                <th>Tipo de Proveedor</th>
+                <th>Fecha de Pago</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngIf="proveedoresList.length === 0">
+                <td colspan="7" style="text-align: center; padding: 20px;">No hay proveedores registrados.</td>
+            </tr>
+            <tr *ngFor="let p of proveedoresList"
+                [id]="'prov-row-' + p.id"
+                [class.row-highlighted]="highlightedId === p.id"
+                style="color: black;">
+                <td style="color: black; font-weight: bold;">{{ p.codigoProveedor || '-' }}</td>
+                <td style="color: black;">{{ p.ruc || p.url || '-' }}</td>
+                <td style="color: black;">{{ p.razonSocial }}</td>
+                <td style="color: black;">{{ p.tipoProveedor }}</td>
+                <td style="color: black;">{{ p.fechaPago }}</td>
+                <td>
+                    <span [ngStyle]="{'color': p.estado === 'PENDIENTE' ? '#dc2626' : '#16a34a', 'font-weight': '600'}">
+                        {{ p.estado }}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn-action-icon" title="Editar" (click)="editarProveedor(p)">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2"
+                            fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                        </svg>
+                    </button>
+                    <button class="btn-action-icon" title="Ver Más" (click)="verdatos(p)">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2"
+                            fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                    <button class="btn-action-icon" title="Exportar">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2"
+                            fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </div>
 
 <div class="modal-overlay" *ngIf="showModal">
     <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
-            <h3>Registrar Nuevo Proveedor</h3>
+            <h3>{{ nuevoProveedor.id ? 'Editar Proveedor' : 'Registrar Nuevo Proveedor' }}</h3>
             <button class="close-btn" (click)="cerrarModal()">&times;</button>
         </div>
 
         <div class="modal-body">
+            <div class="form-group">
+                <label>Código de Proveedor</label>
+                <input type="text" [(ngModel)]="nuevoProveedor.codigoProveedor" placeholder="Ej: PROV001">
+            </div>
+
             <div class="form-group ruc-group">
                 <label>RUC (Opcional)</label>
                 <div class="ruc-input-container">
@@ -107,7 +123,7 @@
         <div class="modal-footer">
             <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
             <button class="btn-guardar" (click)="guardarProveedor()" [disabled]="isSaving">
-                {{ isSaving ? 'Guardando...' : 'Guardar Proveedor' }}
+                {{ isSaving ? 'Guardando...' : (nuevoProveedor.id ? 'Actualizar Proveedor' : 'Guardar Proveedor') }}
             </button>
         </div>
     </div>
@@ -117,9 +133,13 @@
     <div class="conteiner-dats">
         <div class="header-view-dats">
             <h1>Datos de Proveedores</h1>
-            <button class="close-btn" (click)="cerrarModal()">&times;</button>
+            <button class="close-btn" (click)="cerrarModal2()">&times;</button>
         </div>
         <div class="body-view-dats">
+            <div class="form-group">
+                <label>Código de Proveedor</label>
+                <input type="text" [(ngModel)]="datsproveedor.codigoProveedor" disabled>
+            </div>
             <div class="form-group ruc-group">
                 <label>RUC</label>
                 <div class="ruc-input-container">

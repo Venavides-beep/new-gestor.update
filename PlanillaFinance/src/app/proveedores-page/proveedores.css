@@ -1,3 +1,16 @@
+/* === Resaltado de fila desde notificación === */
+@keyframes rowHighlight {
+    0%   { background-color: #fef9c3; }
+    40%  { background-color: #fef08a; }
+    100% { background-color: transparent; }
+}
+
+.row-highlighted {
+    animation: rowHighlight 2.5s ease-out forwards;
+    outline: 2px solid #fbbf24;
+    outline-offset: -2px;
+}
+
 .tittle {
     text-align: center;
     font-size: 26px;

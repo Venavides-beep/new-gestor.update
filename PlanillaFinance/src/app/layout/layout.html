@@ -95,7 +95,8 @@
                     <i class="fa-solid fa-chevron-down arrow-icon" [class.rotated]="isUserMenuOpen"></i>
                 </div>
 
-                <div class="dropdown-menu-box" [class.show]="isUserMenuOpen" [class.expanded]="showNotifications">
+                <div class="dropdown-menu-box" [class.show]="isUserMenuOpen" [class.expanded]="showNotifications"
+                    (click)="$event.stopPropagation()">
                     <div *ngIf="showNotifications" class="notif-container-view">
                         <div class="notif-full-header">
                             <button class="btn-back-notif" (click)="toggleNotifications($event)">
@@ -108,17 +109,19 @@
                             <span class="clear-all-link" (click)="markAllAsRead($event)">Marcar como leídos</span>
                         </div>
 
-                        <div class="notif-section-title">Vencimientos de la semana</div>
+                        <div class="notif-section-title">Pagos Vencidos / Pendientes</div>
 
                         <div class="notif-full-list">
                             <div class="notif-full-item" *ngFor="let notif of notifications"
-                                [class.unread]="!notif.leido">
+                                [class.unread]="!notif.leido"
+                                (click)="irAProveedor(notif, $event)"
+                                style="cursor: pointer;">
                                 <div class="notif-info-row">
                                     <span class="notif-prov-name">{{ notif.proveedor }}</span>
                                     <span class="notif-prov-date">{{ notif.fechaVence }}</span>
                                 </div>
                                 <div class="notif-amount-row">
-                                    <span class="notif-amount-val">S/. {{ notif.monto }}</span>
+                                    <span class="notif-amount-val" [style.color]="notif.montoText ? '#dc2626' : 'inherit'">{{ notif.montoText || ('S/. ' + notif.monto) }}</span>
                                     <span class="unread-dot-blue" *ngIf="!notif.leido"></span>
                                 </div>
                             </div>
