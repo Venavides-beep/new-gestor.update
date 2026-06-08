@@ -2,10 +2,6 @@ import { getGmailClient } from './gmailClient.js';
 import { parseBankEmail, extractTextFromMessage } from './gmailParser.js';
 import { poolFinance } from '../config/dbSql.js';
 import mssql from 'mssql';
-
-/**
- * Test Gmail API connection.
- */
 export async function testConnection(req, res) {
     try {
         const gmail = getGmailClient();
@@ -144,10 +140,6 @@ export async function processEmails(req, res) {
     }
 }
 
-/**
- * Debug parser — test with manual text input.
- * POST body: { subject, body, from, date }
- */
 export async function debugParser(req, res) {
     try {
         const { subject, body, from, date } = req.body;
@@ -162,10 +154,6 @@ export async function debugParser(req, res) {
     }
 }
 
-/**
- * Test a raw query directly against the Gmail API
- * GET /api/gmail/raw-search?q=your_query
- */
 export async function rawSearch(req, res) {
     try {
         const gmail = getGmailClient();
@@ -204,10 +192,6 @@ export async function rawSearch(req, res) {
     }
 }
 
-/**
- * Get a single message by ID (for debugging)
- * GET /api/gmail/message/:id?key=...
- */
 export async function getMessage(req, res) {
     try {
         const gmail = getGmailClient();

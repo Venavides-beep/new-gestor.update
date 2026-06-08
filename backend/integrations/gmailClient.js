@@ -1,9 +1,6 @@
 import { google } from 'googleapis';
 import { getSecret } from '../utils/secrets.js';
 
-/**
- * Creates and returns an authenticated Gmail API client.
- */
 export function getGmailClient() {
     const clientId = getSecret('GMAIL_CLIENT_ID');
     const clientSecret = getSecret('GMAIL_CLIENT_SECRET');
@@ -20,9 +17,6 @@ export function getGmailClient() {
     return google.gmail({ version: 'v1', auth: oauth2Client });
 }
 
-/**
- * Returns the OAuth2 client for generating auth URLs.
- */
 export function getOAuth2Client() {
     const clientId = getSecret('GMAIL_CLIENT_ID');
     const clientSecret = getSecret('GMAIL_CLIENT_SECRET');

@@ -10,6 +10,8 @@ import { fileURLToPath } from 'url';
 import http from 'http';
 import dniRoutes from './routes/dniRoutes.js';
 import gmailRoutes from './integrations/gmailRoutes.js';
+import proveedorReferenciasRoutes from './routes/proveedorReferencias.js';
+
 
 const app = express();
 app.set('trust proxy', true);
@@ -50,7 +52,7 @@ const distPath = path.join(__dirname, 'public');
 app.use(express.static(distPath));
 app.use('/api/reniec', dniRoutes);
 app.use('/api', gmailRoutes);
-// app.use('/api/whmcs-demo', demoRoutes);
+app.use('/api', proveedorReferenciasRoutes);
 
 app.get('/api/dashboard/stats', async (req, res) => {
     try {
@@ -3338,7 +3340,7 @@ function pushUserToDevice(biometricId, nombre, apellidos, password) {
 function deleteUserFromDevice(biometricId) {
     if (!biometricId) return 0;
     const cmd = `DATA DELETE USERINFO PIN=${biometricId}`;
-    
+
     // Eliminar de la caché local de inmediato
     biometricUsersCache.delete(biometricId.toString());
 
