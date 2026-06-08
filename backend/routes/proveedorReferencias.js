@@ -7,7 +7,7 @@ router.get('/finance/proveedores/:id/referencias', async (req, res) => {
     try {
         const { id } = req.params;
         const pool = await poolFinance;
-
+        //sadasdasdasdasds
         const result = await pool.request()
             .input('id', mssql.Int, id)
             .query('SELECT REFERENCIA FROM FINANCE_PROVEEDORES WHERE Id = @id');
