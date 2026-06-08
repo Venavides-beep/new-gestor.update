@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
 import http from 'http';
 import dniRoutes from './routes/dniRoutes.js';
 import gmailRoutes from './integrations/gmailRoutes.js';
-//import proveedorReferenciasRoutes from '../routes/proveedorReferencias.js';
+import proveedorReferenciasRoutes from '../routes/proveedorReferencias.js';
 
 
 const app = express();
@@ -52,7 +52,7 @@ const distPath = path.join(__dirname, 'public');
 app.use(express.static(distPath));
 app.use('/api/reniec', dniRoutes);
 app.use('/api', gmailRoutes);
-//app.use('/api', proveedorReferenciasRoutes);
+app.use('/api', proveedorReferenciasRoutes);
 
 app.get('/api/dashboard/stats', async (req, res) => {
     try {
