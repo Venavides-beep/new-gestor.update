@@ -41,7 +41,7 @@ export class LayoutComponent implements OnInit {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
 
-                const providerNotifs = data
+                this.notifications = data
                     .filter((p: any) => {
                         if (!p.FechaPago || p.Estado !== 'PENDIENTE') return false;
                         const pDate = new Date(p.FechaPago);
@@ -55,7 +55,6 @@ export class LayoutComponent implements OnInit {
                         const dateStr = utcDate.toISOString().split('T')[0];
                         return {
                             id: p.Id || idx,
-                            type: 'proveedor',
                             proveedor: p.RazonSocial || 'Proveedor sin nombre',
                             monto: 0,
                             montoText: 'No Pagado',
@@ -63,48 +62,6 @@ export class LayoutComponent implements OnInit {
                             leido: false
                         };
                     });
-
-                let domainNotifs: any[] = [];
-                const puntoPeProvider = data.find((p: any) =>
-                    p.RazonSocial?.toLowerCase().includes('punto') ||
-                    p.TipoProveedor === 'Dominios' ||
-                    (p.Url && p.Url.toLowerCase().includes('punto.pe'))
-                );
-
-                if (puntoPeProvider) {
-                    try {
-                        const domResponse = await fetch(`${API_URL}/api/whmcs/domains`, {
-                            headers: getAuthHeaders()
-                        });
-                        if (domResponse.ok) {
-                            const domData = await domResponse.json();
-                            const allDomains = domData.dominios || [];
-                            domainNotifs = allDomains
-                                .filter((d: any) => {
-                                    if (!d.dominio || !d.dominio.toLowerCase().endsWith('.pe')) return false;
-                                    return d.diasRestantes !== null && d.diasRestantes <= 7 && d.diasRestantes >= -15 && (d.estado === 'Active' || d.estado === 'Expired');
-                                })
-                                .map((d: any) => {
-                                    return {
-                                        id: puntoPeProvider.Id,
-                                        type: 'dominio',
-                                        domain: d.dominio,
-                                        proveedor: `Dom: ${d.dominio}`,
-                                        monto: d.montoRecurrente || 0,
-                                        montoText: d.diasRestantes === 0
-                                            ? 'Vence hoy'
-                                            : (d.diasRestantes < 0 ? `Venció hace ${Math.abs(d.diasRestantes)}d` : `Vence en ${d.diasRestantes}d`),
-                                        fechaVence: d.fechaVencimiento,
-                                        leido: false
-                                    };
-                                });
-                        }
-                    } catch (domErr) {
-                        console.error('Error al obtener notificaciones de dominios:', domErr);
-                    }
-                }
-
-                this.notifications = [...providerNotifs, ...domainNotifs];
             }
         } catch (error) {
             console.error('Error al cargar notificaciones de proveedores:', error);
@@ -124,11 +81,7 @@ export class LayoutComponent implements OnInit {
         event.stopPropagation();
         this.isUserMenuOpen = false;
         this.showNotifications = false;
-        if (notif.type === 'dominio') {
-            this.router.navigate(['/proveedores'], { queryParams: { highlight: notif.id, domain: notif.domain } });
-        } else {
-            this.router.navigate(['/proveedores'], { queryParams: { highlight: notif.id } });
-        }
+        this.router.navigate(['/proveedores'], { queryParams: { highlight: notif.id } });
     }
 
     markAllAsRead(event: Event) {

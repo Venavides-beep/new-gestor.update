@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { API_URL, getAuthHeaders } from '../api-config';
-
+import { FinanceDashboardComponent } from "../finance-dashboard/finance-dashboard";
 @Component({
     selector: 'app-proveedores',
     standalone: true,
@@ -26,7 +26,6 @@ export class ProveedoresComponent implements OnInit {
     dominiosTotal: number = 0;
     selectedProveedorNombre: string = '';
 
-    // Filtros del modal de dominios
     filtroDominio: string = '';
     filtroEstado: string = 'todos';
     filtroVencimiento: string = 'todos';
@@ -53,20 +52,19 @@ export class ProveedoresComponent implements OnInit {
             if (highlightId) {
                 const id = Number(highlightId);
                 this.highlightedId = id;
-                // Scroll a la fila resaltada después de renderizar
                 setTimeout(() => {
                     const el = document.getElementById(`prov-row-${id}`);
                     if (el) {
                         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                 }, 100);
-                // Quitar el resaltado después de 2 segundos
                 setTimeout(() => {
                     this.highlightedId = null;
                 }, 2500);
             }
         });
     }
+
 
     async cargarProveedores() {
         try {
@@ -110,6 +108,7 @@ export class ProveedoresComponent implements OnInit {
         const paddedNumber = String(nextNumber).padStart(3, '0');
         return `${prefix}${paddedNumber}`;
     }
+
 
     abrirModal() {
         this.showModal = true;
@@ -169,7 +168,6 @@ export class ProveedoresComponent implements OnInit {
         this.showModal2 = false;
     }
 
-    // ==================== DOMINIOS ====================
     async verDominios(proveedor: any) {
         this.showDominiosModal = true;
         this.loadingDominios = true;
@@ -189,7 +187,7 @@ export class ProveedoresComponent implements OnInit {
                 let loadedDomains = data.dominios || [];
                 const nombreLower = this.selectedProveedorNombre.toLowerCase();
                 if (nombreLower.includes('punto')) {
-                    loadedDomains = loadedDomains.filter((d: any) => 
+                    loadedDomains = loadedDomains.filter((d: any) =>
                         d.dominio && d.dominio.toLowerCase().endsWith('.pe')
                     );
                 }
@@ -213,7 +211,6 @@ export class ProveedoresComponent implements OnInit {
     get dominiosFiltrados(): any[] {
         let filtered = [...this.dominiosList];
 
-        // Filtro por texto (nombre de dominio)
         if (this.filtroDominio) {
             const term = this.filtroDominio.toLowerCase();
             filtered = filtered.filter(d =>
@@ -222,14 +219,12 @@ export class ProveedoresComponent implements OnInit {
             );
         }
 
-        // Filtro por estado
         if (this.filtroEstado !== 'todos') {
             filtered = filtered.filter(d =>
                 d.estado?.toLowerCase() === this.filtroEstado.toLowerCase()
             );
         }
 
-        // Filtro por vencimiento
         if (this.filtroVencimiento === 'mes') {
             const now = new Date();
             const mesActual = now.getMonth();
@@ -245,7 +240,6 @@ export class ProveedoresComponent implements OnInit {
             filtered = filtered.filter(d => d.diasRestantes !== null && d.diasRestantes >= 0 && d.diasRestantes <= 30);
         }
 
-        // Ordenar por días restantes (valor absoluto para ordenar por magnitud: 0d, luego 1d/-1d, luego -2d)
         filtered.sort((a, b) => {
             const diasA = a.diasRestantes !== null ? a.diasRestantes : 999999;
             const diasB = b.diasRestantes !== null ? b.diasRestantes : 999999;
@@ -255,7 +249,7 @@ export class ProveedoresComponent implements OnInit {
                 if (absA !== absB) {
                     return absA - absB;
                 }
-                return diasB - diasA; // Mostrar positivos (ej: 1d) antes que negativos (ej: -1d)
+                return diasB - diasA;
             } else {
                 if (absA !== absB) {
                     return absB - absA;
@@ -292,7 +286,6 @@ export class ProveedoresComponent implements OnInit {
         return dominio.estado;
     }
 
-    // Resumen rápido para el badge en la tabla de proveedores
     get contadorDominiosVencenMes(): number {
         const now = new Date();
         const mesActual = now.getMonth();
@@ -303,8 +296,6 @@ export class ProveedoresComponent implements OnInit {
             return exp.getMonth() === mesActual && exp.getFullYear() === anioActual;
         }).length;
     }
-
-    // ==================== FIN DOMINIOS ====================
 
     async consultarRUC() {
         if (!this.nuevoProveedor.ruc || this.nuevoProveedor.ruc.length !== 11) {
