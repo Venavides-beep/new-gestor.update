@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
 import http from 'http';
 import dniRoutes from './routes/dniRoutes.js';
 import gmailRoutes from './integrations/gmailRoutes.js';
-import proveedorReferenciasRoutes from './routes/proveedorReferencias.js';
+import proveedorReferenciasRoutes from '../routes/proveedorReferencias.js';
 
 
 const app = express();
